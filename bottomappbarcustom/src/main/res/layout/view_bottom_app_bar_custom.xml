@@ -22,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/height_bottom_app_bar"
             android:layout_gravity="bottom"
-            android:backgroundTint="?android:attr/colorPrimaryDark"
+            android:backgroundTint="?android:attr/colorPrimary"
             app:contentInsetStart="0dp"/>
 
         <FrameLayout
@@ -34,7 +34,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/height_bottom_app_bar"
                 android:layout_gravity="bottom|end"
-                android:background="?android:attr/colorPrimaryDark"
+                android:background="?android:attr/colorPrimary"
                 android:gravity="end"
                 android:orientation="horizontal"
                 android:paddingStart="20dp">
@@ -58,7 +58,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/height_bottom_app_bar"
                 android:layout_gravity="bottom|start"
-                android:background="?android:attr/colorPrimaryDark"
+                android:background="?android:attr/colorPrimary"
                 android:gravity="start"
                 android:orientation="horizontal"
                 android:paddingEnd="20dp">
@@ -82,7 +82,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/height_bottom_app_bar"
                 android:layout_gravity="bottom|start"
-                android:background="?android:attr/colorPrimaryDark"
+                android:background="?android:attr/colorPrimary"
                 android:orientation="horizontal"
                 android:paddingEnd="50dp"
                 android:visibility="visible">

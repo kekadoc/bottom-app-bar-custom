@@ -282,6 +282,11 @@ public class BottomAppBarCustom extends LinearLayout {
             Anim.ViewAnimation.ProgressBarAnim.progressAnimation(progressBar, step);
         }
     }
+    public void setColorPanel(int color) {
+        icons_all_left.setBackgroundColor(color);
+        icons_left.setBackgroundColor(color);
+        icons_right.setBackgroundColor(color);
+    }
 
 
     private void construct(final FABSettings fabSettings, int fabAlignment) {
