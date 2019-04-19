@@ -1,9 +1,12 @@
 package com.qegame.bottomappbarcustom;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
@@ -128,6 +131,17 @@ public class BottomAppBarCustom extends LinearLayout {
         };
 
         setConstruction(new Construction.FABCenter(fab, null, null));
+
+
+        TypedValue typedValue = new TypedValue();
+        TypedArray a = context.obtainStyledAttributes(typedValue.data, new int[] { R.attr.colorPrimary, R.attr.colorAccent });
+
+        int colorPrimary = a.getColor(0, 0);
+        int colorAccent = a.getColor(1, 0);
+
+        a.recycle();
+        setColorPanel(colorPrimary);
+        getFab().setBackgroundTintList(ColorStateList.valueOf(colorAccent));
     }
 
     //region Getters/Setters
