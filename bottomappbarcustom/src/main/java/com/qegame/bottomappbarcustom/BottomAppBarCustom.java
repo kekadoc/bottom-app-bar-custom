@@ -78,6 +78,8 @@ public class BottomAppBarCustom extends LinearLayout {
     private void init(Context context, AttributeSet attrs) {
         inflate(getContext(), R.layout.view_bottom_app_bar_custom,this);
 
+
+
         fab = findViewById(R.id.fab);
         bottomAppBar = findViewById(R.id.bab);
         coordinatorLayout = findViewById(R.id.coordinator);
