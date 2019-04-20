@@ -7,16 +7,20 @@ import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.qegame.animsimple.Anim;
+import com.qegame.qeutil.QeUtil;
 
 import androidx.annotation.FloatRange;
 import androidx.annotation.IntRange;
@@ -55,30 +59,27 @@ public class BottomAppBarCustom extends LinearLayout {
 
     private FABSettings fabSettings;
 
+    private int colorPrimary;
+    private int colorAccent;
+
     public BottomAppBarCustom(Context context) {
         super(context);
         init(context, null);
     }
-
     public BottomAppBarCustom(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
     }
-
     public BottomAppBarCustom(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context, attrs);
     }
-
     public BottomAppBarCustom(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init(context, attrs);
     }
-
     private void init(Context context, AttributeSet attrs) {
         inflate(getContext(), R.layout.view_bottom_app_bar_custom,this);
-
-
 
         fab = findViewById(R.id.fab);
         bottomAppBar = findViewById(R.id.bab);
@@ -86,6 +87,9 @@ public class BottomAppBarCustom extends LinearLayout {
         icons_all_left = findViewById(R.id.icons_all_left);
         icons_left = findViewById(R.id.icons_left);
         icons_right = findViewById(R.id.icons_right);
+
+        fab.setElevation(getResources().getDimension(R.dimen.elevation_fab));
+        bottomAppBar.setElevation(getResources().getDimension(R.dimen.elevation));
 
 
         fab.setOnClickListener(new OnClickListener() {
@@ -138,10 +142,9 @@ public class BottomAppBarCustom extends LinearLayout {
         TypedValue typedValue = new TypedValue();
         TypedArray a = context.obtainStyledAttributes(typedValue.data, new int[] { R.attr.colorPrimary, R.attr.colorAccent });
 
-        int colorPrimary = a.getColor(0, 0);
-        int colorAccent = a.getColor(1, 0);
+        this.colorPrimary = a.getColor(0, 0);
+        this.colorAccent = a.getColor(1, 0);
 
-        a.recycle();
         setColorPanel(colorPrimary);
         getFab().setBackgroundTintList(ColorStateList.valueOf(colorAccent));
     }
@@ -225,32 +228,24 @@ public class BottomAppBarCustom extends LinearLayout {
         }
     }
     public void showSnackBar(String text, int duration) {
-        int marginSide = 0;
-        int marginBottom = getHeight();
+        int marginSide = (int) getResources().getDimension(R.dimen.margin_side_snackbar);
 
         final Snackbar snackbar = Snackbar.make(this, text, duration);
 
-        snackbar.setAction("Undo", new OnClickListener() {
+        snackbar.setAction("Ok", new OnClickListener() {
             @Override
             public void onClick(View v) {
                 snackbar.dismiss();
             }
         });
-
-        snackbar.setActionTextColor(ContextCompat.getColor(getContext(), R.color.design_default_color_primary));
-
+        snackbar.setActionTextColor(colorAccent);
+        snackbar.setAnimationMode(BaseTransientBottomBar.ANIMATION_MODE_SLIDE);
         View snackBarView = snackbar.getView();
-        snackBarView.setElevation(getElevation() * 0.75f);
-        snackBarView.setElevation(0f);
-
         CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) snackBarView.getLayoutParams();
-
-        params.setMargins(
-                params.leftMargin + marginSide,
-                params.topMargin,
-                params.rightMargin + marginSide,
-                params.bottomMargin + marginBottom
-        );
+        params.setAnchorId(R.id.coordinator);
+        params.anchorGravity = Gravity.TOP;
+        params.gravity = Gravity.TOP;
+        params.setMargins(marginSide, 0, marginSide, 0);
 
         snackBarView.setLayoutParams(params);
         snackbar.show();
