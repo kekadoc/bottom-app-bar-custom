@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
                 view.setLayoutParams(params);
                 snackbar.show();*/
-                babc.showSnackBar("sh", 2000);
+                babc.showSnackBar("sh", Snackbar.LENGTH_LONG);
             }
         });
     }

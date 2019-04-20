@@ -10,6 +10,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnticipateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -232,23 +233,28 @@ public class BottomAppBarCustom extends LinearLayout {
 
         final Snackbar snackbar = Snackbar.make(this, text, duration);
 
-        snackbar.setAction("Ok", new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                snackbar.dismiss();
-            }
-        });
-        snackbar.setActionTextColor(colorAccent);
-        snackbar.setAnimationMode(BaseTransientBottomBar.ANIMATION_MODE_SLIDE);
-        View snackBarView = snackbar.getView();
+        final View snackBarView = snackbar.getView();
+
         CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) snackBarView.getLayoutParams();
         params.setAnchorId(R.id.coordinator);
         params.anchorGravity = Gravity.TOP;
         params.gravity = Gravity.TOP;
         params.setMargins(marginSide, 0, marginSide, 0);
-
         snackBarView.setLayoutParams(params);
+
+        // TODO: 21.04.2019 Add Animation
+
+        snackbar.setAction("Ok", new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+        snackbar.setAnimationMode(BaseTransientBottomBar.ANIMATION_MODE_SLIDE);
+        snackbar.setActionTextColor(colorAccent);
+
         snackbar.show();
+
     }
     public void showSnackBar(String text) {
         showSnackBar(text, 2000);
