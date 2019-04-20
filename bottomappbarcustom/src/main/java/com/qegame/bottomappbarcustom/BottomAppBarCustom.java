@@ -205,7 +205,7 @@ public class BottomAppBarCustom extends LinearLayout {
                     images_left[i].setVisibility(VISIBLE);
                     images_left[i].setImageDrawable(construct.iconSettings_left[i].getImage());
                     final IconSettings iconSettings = construct.iconSettings_left[i];
-                    images_all_left[i].setOnClickListener(iconSettings.getClickListener());
+                    images_left[i].setOnClickListener(iconSettings.getClickListener());
                 }
             }
             if (construct.iconSettings_right != null) {
@@ -213,7 +213,7 @@ public class BottomAppBarCustom extends LinearLayout {
                     images_right[i].setVisibility(VISIBLE);
                     images_right[i].setImageDrawable(construct.iconSettings_right[i].getImage());
                     final IconSettings iconSettings = construct.iconSettings_right[i];
-                    images_all_left[i].setOnClickListener(iconSettings.getClickListener());
+                    images_left[i].setOnClickListener(iconSettings.getClickListener());
                 }
             }
 
