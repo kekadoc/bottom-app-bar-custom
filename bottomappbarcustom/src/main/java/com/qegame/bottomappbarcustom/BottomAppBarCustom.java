@@ -312,7 +312,7 @@ public class BottomAppBarCustom extends LinearLayout {
         icons_right.setBackgroundColor(color);
     }
 
-    public void performClickBottomIcon(int position) {
+    public void performClickIcon(int position) {
         if (this.construction instanceof Construction.FABEnd) {
             if (icons_all_left.getChildCount() > position) {
                 if (icons_all_left.getChildAt(position).getVisibility() == VISIBLE) {
