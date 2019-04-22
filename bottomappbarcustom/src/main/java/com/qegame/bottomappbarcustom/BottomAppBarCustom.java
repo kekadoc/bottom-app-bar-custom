@@ -23,6 +23,8 @@ import com.google.android.material.snackbar.Snackbar;
 import com.qegame.animsimple.Anim;
 import com.qegame.qeutil.QeUtil;
 
+import java.util.ArrayList;
+
 import androidx.annotation.FloatRange;
 import androidx.annotation.IntRange;
 import androidx.annotation.Nullable;
@@ -33,6 +35,8 @@ import androidx.core.content.ContextCompat;
 
 public class BottomAppBarCustom extends LinearLayout {
     private final String TAG = "BottomAppBarCustom-ИНФ";
+
+    // TODO: 21.04.2019 Perform click icon
 
     /** Максимальное значение прогресса у ProgressBar */
     private final int MAX_PB = 360;
@@ -62,6 +66,8 @@ public class BottomAppBarCustom extends LinearLayout {
 
     private int colorPrimary;
     private int colorAccent;
+
+    private Construction construction;
 
     public BottomAppBarCustom(Context context) {
         super(context);
@@ -185,6 +191,7 @@ public class BottomAppBarCustom extends LinearLayout {
         fab.setImageDrawable(icon);
     }
     public void setConstruction(Construction construction) {
+        this.construction = construction;
 
         if (construction instanceof Construction.FABEnd) {
             Construction.FABEnd construct = (Construction.FABEnd) construction;
@@ -303,6 +310,30 @@ public class BottomAppBarCustom extends LinearLayout {
         icons_all_left.setBackgroundColor(color);
         icons_left.setBackgroundColor(color);
         icons_right.setBackgroundColor(color);
+    }
+
+    public void performClickBottomIcon(int position) {
+        if (this.construction instanceof Construction.FABEnd) {
+            if (icons_all_left.getChildCount() > position) {
+                if (icons_all_left.getChildAt(position).getVisibility() == VISIBLE) {
+                    icons_all_left.getChildAt(position).performClick();
+                }
+            }
+        }
+        if (this.construction instanceof Construction.FABCenter) {
+            if (icons_left.getChildCount() + icons_right.getChildCount() > position) {
+                ArrayList<View> icons = new ArrayList<>();
+                for (int i = 0; i < icons_left.getChildCount(); i++) {
+                    icons.add(icons_left.getChildAt(i));
+                }
+                for (int i = 0; i < icons_right.getChildCount(); i++) {
+                    icons.add(icons_right.getChildAt(i));
+                }
+                if (icons.get(position).getVisibility() == VISIBLE) {
+                    icons.get(position).performClick();
+                }
+            }
+        }
     }
 
 
