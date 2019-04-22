@@ -36,8 +36,6 @@ import androidx.core.content.ContextCompat;
 public class BottomAppBarCustom extends LinearLayout {
     private final String TAG = "BottomAppBarCustom-ИНФ";
 
-    // TODO: 21.04.2019 Perform click icon
-
     /** Максимальное значение прогресса у ProgressBar */
     private final int MAX_PB = 360;
 
@@ -335,7 +333,6 @@ public class BottomAppBarCustom extends LinearLayout {
             }
         }
     }
-
 
     private void construct(final FABSettings fabSettings, int fabAlignment) {
 
