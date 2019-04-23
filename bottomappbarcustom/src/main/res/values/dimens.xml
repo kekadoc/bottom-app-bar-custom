@@ -2,7 +2,7 @@
 <resources>
     <dimen name="height_bottom_app_bar_custom">90dp</dimen>
     <dimen name="height_bottom_app_bar">56dp</dimen>
-    <dimen name="height_fab_protrusion">34</dimen>
+    <dimen name="height_fab_protrusion">34dp</dimen>
 
     <dimen name="margin_side_snackbar">20dp</dimen>
     <dimen name="elevation">8dp</dimen>
