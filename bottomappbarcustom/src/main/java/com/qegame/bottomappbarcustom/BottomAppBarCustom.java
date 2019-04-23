@@ -164,10 +164,8 @@ public class BottomAppBarCustom extends LinearLayout {
         if (fabSettings != null) {
 
             getFab().setImageDrawable(fabSettings.getImage());
+            Anim.animate(fab).scale(0f, 1f, Anim.DURATION_NORMAL, new OvershootInterpolator()).start();
 
-            if (fabSettings.getImage() != null) {
-                Anim.animate(fab).scale(0f, 1f, Anim.DURATION_NORMAL, new OvershootInterpolator()).start();
-            }
             if (fabSettings.getClickListener() == null) {
                 getFab().setEnabled(false);
                 getFab().setClickable(false);
