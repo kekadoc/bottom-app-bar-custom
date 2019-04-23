@@ -163,8 +163,10 @@ public class BottomAppBarCustom extends LinearLayout {
         this.fabSettings = fabSettings;
         if (fabSettings != null) {
 
+            getFab().setImageDrawable(fabSettings.getImage());
+
             if (fabSettings.getImage() != null) {
-                getFab().setImageDrawable(fabSettings.getImage());
+                Anim.animate(fab).scale(0f, 1f, Anim.DURATION_NORMAL, new OvershootInterpolator()).start();
             }
             if (fabSettings.getClickListener() == null) {
                 getFab().setEnabled(false);
@@ -185,9 +187,6 @@ public class BottomAppBarCustom extends LinearLayout {
         return bottomAppBar;
     }
 
-    public void setFABIcon(Drawable icon) {
-        fab.setImageDrawable(icon);
-    }
     public void setConstruction(Construction construction) {
         this.construction = construction;
 
@@ -342,11 +341,7 @@ public class BottomAppBarCustom extends LinearLayout {
 
         setFabSettings(fabSettings);
 
-        if (bottomAppBar.getFabAlignmentMode() == fabAlignment) {
-            Anim anim = new Anim(fab);
-            anim.scale(0f, 1f, Anim.DURATION_NORMAL, new OvershootInterpolator());
-            anim.start();
-        } else {
+        if (bottomAppBar.getFabAlignmentMode() != fabAlignment) {
             bottomAppBar.setFabAlignmentMode(fabAlignment);
         }
         for (AppCompatImageView anImages : images_all_left) {
