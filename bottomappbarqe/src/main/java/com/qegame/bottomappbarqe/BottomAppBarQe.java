@@ -5,7 +5,6 @@ import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -25,7 +24,6 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.snackbar.SnackbarContentLayout;
 import com.qegame.animsimple.Anim;
@@ -168,15 +166,19 @@ public class BottomAppBarQe extends LinearLayout {
         return fabSettings;
     }
     public void setFabSettings(FABSettings fabSettings) {
+        setFabSettings(fabSettings, true);
+    }
+    private void setFabSettings(FABSettings fabSettings, boolean animate) {
         this.fabSettings = fabSettings;
         if (fabSettings != null) {
 
             getFab().setImageDrawable(fabSettings.getImage());
 
-            Anim anim_default = Anim.animate(fab).scale(0f, 1f, Anim.DURATION_NORMAL, new OvershootInterpolator());
-
-            Anim anim = fabSettings.getAnimation(anim_default);
-            if (anim != null) anim.start();
+            if (animate) {
+                Anim anim_default = Anim.animate(fab).scale(0f, 1f, Anim.DURATION_NORMAL, new OvershootInterpolator());
+                Anim anim = fabSettings.getAnimation(anim_default);
+                if (anim != null) anim.start();
+            }
 
             if (fabSettings.getClickListener() == null) {
                 getFab().setEnabled(false);
@@ -210,7 +212,7 @@ public class BottomAppBarQe extends LinearLayout {
                 final IconSettings iconSettings = construct.iconSettings[i];
                 images_all_left[i].setOnClickListener(iconSettings.getClickListener());
             }
-            Anim anim = new Anim.MoveLeft(icons_all_left, Anim.DURATION_NORMAL, new OvershootInterpolator());
+            Anim anim = new Anim.MoveLeft(icons_all_left, Anim.DURATION_VERY_VERY_LONG, new OvershootInterpolator());
             anim.start();
         }
 
@@ -235,10 +237,10 @@ public class BottomAppBarQe extends LinearLayout {
                 }
             }
 
-            Anim anim_left = new Anim.MoveLeft(icons_left, Anim.DURATION_NORMAL, new OvershootInterpolator());
+            Anim anim_left = new Anim.MoveLeft(icons_left, Anim.DURATION_VERY_VERY_LONG, new OvershootInterpolator());
             anim_left.start();
 
-            Anim anim_right = new Anim.MoveRight(icons_right, Anim.DURATION_NORMAL, new OvershootInterpolator());
+            Anim anim_right = new Anim.MoveRight(icons_right, Anim.DURATION_VERY_VERY_LONG, new OvershootInterpolator());
             anim_right.start();
         }
     }
@@ -352,6 +354,8 @@ public class BottomAppBarQe extends LinearLayout {
         }
     }
     public void setColorPanel(int color) {
+        this.colorPrimary = color;
+        this.bottomAppBar.setBackgroundTint(ColorStateList.valueOf(color));
         icons_all_left.setBackgroundColor(color);
         icons_left.setBackgroundColor(color);
         icons_right.setBackgroundColor(color);
@@ -387,8 +391,8 @@ public class BottomAppBarQe extends LinearLayout {
         icons_left.setVisibility(GONE);
         icons_right.setVisibility(GONE);
 
-        setFabSettings(fabSettings);
-
+        setFabSettings(fabSettings, false);
+        bottomAppBar.setFabAlignmentMode(fabAlignment);
         if (bottomAppBar.getFabAlignmentMode() != fabAlignment) {
             bottomAppBar.setFabAlignmentMode(fabAlignment);
         }
