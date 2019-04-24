@@ -1,25 +1,19 @@
-package com.qegame.bottomappbarcustom;
+package com.qegame.bottomappbarqe;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnticipateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-
-import com.google.android.material.bottomappbar.BottomAppBar;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.BaseTransientBottomBar;
-import com.google.android.material.snackbar.Snackbar;
-import com.qegame.animsimple.Anim;
-
-import java.util.ArrayList;
 
 import androidx.annotation.FloatRange;
 import androidx.annotation.IntRange;
@@ -28,11 +22,24 @@ import androidx.annotation.Size;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
-public class BottomAppBarCustom extends LinearLayout {
+import com.google.android.material.bottomappbar.BottomAppBar;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.snackbar.SnackbarContentLayout;
+import com.qegame.animsimple.Anim;
+import com.qegame.qeutil.QeUtil;
+
+import java.util.ArrayList;
+import java.util.Queue;
+
+public class BottomAppBarQe extends LinearLayout {
     private final String TAG = "BottomAppBarCustom-ИНФ";
 
     /** Максимальное значение прогресса у ProgressBar */
     private final int MAX_PB = 360;
+    private final long SNACK_BAR_ANIM_DURATION = 300;
 
     public interface FABSettings {
         Drawable getImage();
@@ -63,21 +70,19 @@ public class BottomAppBarCustom extends LinearLayout {
 
     private Construction construction;
 
-    private Anim anim_fabSwitchImage;
-
-    public BottomAppBarCustom(Context context) {
+    public BottomAppBarQe(Context context) {
         super(context);
         init(context, null);
     }
-    public BottomAppBarCustom(Context context, @Nullable AttributeSet attrs) {
+    public BottomAppBarQe(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
     }
-    public BottomAppBarCustom(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public BottomAppBarQe(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context, attrs);
     }
-    public BottomAppBarCustom(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public BottomAppBarQe(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init(context, attrs);
     }
@@ -93,8 +98,7 @@ public class BottomAppBarCustom extends LinearLayout {
 
         fab.setElevation(getResources().getDimension(R.dimen.elevation_fab));
         bottomAppBar.setElevation(getResources().getDimension(R.dimen.elevation));
-
-        this.anim_fabSwitchImage = Anim.animate(fab).scale(0f, 1f, Anim.DURATION_NORMAL, new OvershootInterpolator());
+        setElevation(getResources().getDimension(R.dimen.elevation));
 
         fab.setOnClickListener(new OnClickListener() {
             @Override
@@ -141,7 +145,7 @@ public class BottomAppBarCustom extends LinearLayout {
 
             @Override
             public Anim getAnimation(Anim animDefault) {
-                return BottomAppBarCustom.this.anim_fabSwitchImage;
+                return animDefault;
             }
         };
 
@@ -169,7 +173,9 @@ public class BottomAppBarCustom extends LinearLayout {
 
             getFab().setImageDrawable(fabSettings.getImage());
 
-            Anim anim = fabSettings.getAnimation(this.anim_fabSwitchImage);
+            Anim anim_default = Anim.animate(fab).scale(0f, 1f, Anim.DURATION_NORMAL, new OvershootInterpolator());
+
+            Anim anim = fabSettings.getAnimation(anim_default);
             if (anim != null) anim.start();
 
             if (fabSettings.getClickListener() == null) {
@@ -237,36 +243,74 @@ public class BottomAppBarCustom extends LinearLayout {
         }
     }
     public void showSnackBar(String text, int duration) {
-        int marginSide = (int) getResources().getDimension(R.dimen.margin_side_snackbar);
 
         final Snackbar snackbar = Snackbar.make(this, text, duration);
 
-        final View snackBarView = snackbar.getView();
+        snackBarViewBuilder(snackbar, snackbar.getView());
 
-        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) snackBarView.getLayoutParams();
-        params.setAnchorId(R.id.coordinator);
-        params.anchorGravity = Gravity.TOP;
-        params.gravity = Gravity.TOP;
-        params.setMargins(marginSide, 0, marginSide, 0);
-        snackBarView.setLayoutParams(params);
-
-        // TODO: 21.04.2019 Add Animation
-
-        snackbar.setAction("Ok", new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
-        snackbar.setAnimationMode(BaseTransientBottomBar.ANIMATION_MODE_SLIDE);
         snackbar.setActionTextColor(colorAccent);
 
         snackbar.show();
 
+        QeUtil.doOnMeasureView(snackbar.getView(), new QeUtil.Do.WithIt<View>() {
+            @Override
+            public void doWithIt(View it) {
+                Anim animDefault = Anim.animate(snackbar.getView()).translationY(Anim.TRANSLATION_END, 0, SNACK_BAR_ANIM_DURATION, new OvershootInterpolator(0.8f));
+                Anim anim = snackBarAnimShowBuilder(snackbar.getView(), animDefault);
+                if (anim != null) {
+                    anim.start();
+                }
+            }
+        });
+
     }
     public void showSnackBar(String text) {
-        showSnackBar(text, 2000);
+        showSnackBar(text, Snackbar.LENGTH_LONG);
     }
+
+    public View snackBarViewBuilder(final Snackbar snackbar, View view) {
+        int marginSide = (int) getResources().getDimension(R.dimen.margin_side_snackbar);
+        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) view.getLayoutParams();
+        params.setAnchorId(R.id.coordinator);
+        params.anchorGravity = Gravity.TOP;
+        params.gravity = Gravity.TOP;
+        params.setMargins(marginSide, 0, marginSide, 0);
+        view.setLayoutParams(params);
+
+        Snackbar.SnackbarLayout snackbarLayout = (Snackbar.SnackbarLayout) view;
+
+        SnackbarContentLayout view_snack = (SnackbarContentLayout) snackbarLayout.getChildAt(0);
+        MaterialButton button = (MaterialButton) view_snack.getChildAt(1);
+        button.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Anim animDefault = Anim.animate(snackbar.getView()).translationY(0, Anim.TRANSLATION_END, SNACK_BAR_ANIM_DURATION, new AnticipateInterpolator(1f));
+                Anim anim = snackBarAnimFadeBuilder(snackbar.getView(), animDefault);
+                if (anim != null) {
+                    anim.setOnAnimEnd(new Anim.OnAnimEnd() {
+                        @Override
+                        public void onEnd(Anim anim) {
+                            snackbar.dismiss();
+                        }
+                    });
+
+                    anim.start();
+                }
+            }
+        });
+        button.setText("Ok");
+        button.setVisibility(VISIBLE);
+
+        return view;
+    }
+
+    public Anim snackBarAnimShowBuilder(View viewSnack, Anim animDefault) {
+        return animDefault;
+    }
+    public Anim snackBarAnimFadeBuilder(View viewSnack, Anim animDefault) {
+        return animDefault;
+    }
+
     public void showProgressBar() {
         inflate(getContext(), R.layout.progress_bar_fab, (ViewGroup) findViewById(R.id.coordinator));
 
