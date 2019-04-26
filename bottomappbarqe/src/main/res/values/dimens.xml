@@ -5,6 +5,8 @@
     <dimen name="height_fab_protrusion">34dp</dimen>
 
     <dimen name="margin_side_snackbar">20dp</dimen>
-    <dimen name="elevation">8dp</dimen>
+    <dimen name="elevation_bar">8dp</dimen>
     <dimen name="elevation_fab">12dp</dimen>
+    <dimen name="elevation_snack">6dp</dimen>
+
 </resources>

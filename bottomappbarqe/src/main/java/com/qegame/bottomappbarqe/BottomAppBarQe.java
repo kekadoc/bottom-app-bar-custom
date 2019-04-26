@@ -5,6 +5,7 @@ import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -95,8 +96,8 @@ public class BottomAppBarQe extends LinearLayout {
         icons_right = findViewById(R.id.icons_right);
 
         fab.setElevation(getResources().getDimension(R.dimen.elevation_fab));
-        bottomAppBar.setElevation(getResources().getDimension(R.dimen.elevation));
-        setElevation(getResources().getDimension(R.dimen.elevation));
+        bottomAppBar.setElevation(getResources().getDimension(R.dimen.elevation_bar));
+        setElevation(getResources().getDimension(R.dimen.elevation_bar));
 
         fab.setOnClickListener(new OnClickListener() {
             @Override
@@ -272,6 +273,7 @@ public class BottomAppBarQe extends LinearLayout {
 
     public View snackBarViewBuilder(final Snackbar snackbar, View view) {
         int marginSide = (int) getResources().getDimension(R.dimen.margin_side_snackbar);
+        view.setElevation(getResources().getDimension(R.dimen.elevation_snack));
         CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) view.getLayoutParams();
         params.setAnchorId(R.id.coordinator);
         params.anchorGravity = Gravity.TOP;
