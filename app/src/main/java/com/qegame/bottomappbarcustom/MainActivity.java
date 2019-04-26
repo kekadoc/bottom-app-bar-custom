@@ -35,7 +35,8 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        bottomAppBarQe.setConstruction(getFabEnd());
+                       // bottomAppBarQe.setConstruction(getFabEnd());
+                        bottomAppBarQe.showSnackBar("Text");
                     }
                 };
             }

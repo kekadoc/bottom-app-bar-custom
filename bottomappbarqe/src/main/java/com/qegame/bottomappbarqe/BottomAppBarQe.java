@@ -244,13 +244,12 @@ public class BottomAppBarQe extends LinearLayout {
             anim_right.start();
         }
     }
-    public void showSnackBar(String text, int duration) {
+
+    public Snackbar showSnackBar(String text, int duration) {
 
         final Snackbar snackbar = Snackbar.make(this, text, duration);
 
         snackBarViewBuilder(snackbar, snackbar.getView());
-
-        snackbar.setActionTextColor(colorAccent);
 
         snackbar.show();
 
@@ -265,9 +264,10 @@ public class BottomAppBarQe extends LinearLayout {
             }
         });
 
+        return snackbar;
     }
-    public void showSnackBar(String text) {
-        showSnackBar(text, Snackbar.LENGTH_LONG);
+    public Snackbar showSnackBar(String text) {
+        return showSnackBar(text, Snackbar.LENGTH_LONG);
     }
 
     public View snackBarViewBuilder(final Snackbar snackbar, View view) {
@@ -301,6 +301,7 @@ public class BottomAppBarQe extends LinearLayout {
             }
         });
         button.setText("Ok");
+        button.setTextColor(colorAccent);
         button.setVisibility(VISIBLE);
 
         return view;
