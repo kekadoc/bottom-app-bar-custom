@@ -22,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/height_bottom_app_bar"
             android:layout_gravity="bottom"
-            app:contentInsetStart="0dp"/>
+            app:contentInsetStart="0dp" />
 
         <FrameLayout
             android:layout_width="match_parent"

@@ -21,8 +21,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         bottomAppBarQe = findViewById(R.id.bar);
         bottomAppBarQe.setConstruction(getFabCenter());
-        //bottomAppBarQe.showProgressBar();
-        //bottomAppBarQe.setProgressPercent(50);
+        bottomAppBarQe.showProgressBar();
     }
 
     public BottomAppBarQe.Construction.FABCenter getFabCenter() {
@@ -37,10 +36,8 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                       // bottomAppBarQe.setConstruction(getFabEnd());
-                        bottomAppBarQe.showSnackBar("ss");
-                        //bottomAppBarQe.addProgressPercent(-10);
-
+                        //bottomAppBarQe.showProgressBar();
+                        bottomAppBarQe.addProgressPercent(20);
                     }
                 };
             }

@@ -1,11 +1,14 @@
 package com.qegame.bottomappbarqe;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -70,6 +73,8 @@ public class BottomAppBarQe extends LinearLayout {
     private int colorAccent;
 
     private Construction construction;
+
+    private Integer defProgress;
 
     public BottomAppBarQe(Context context) {
         super(context);
@@ -350,20 +355,36 @@ public class BottomAppBarQe extends LinearLayout {
     }
 
     public void showProgressBar() {
+        if (this.progressBar != null) {
+            refreshProgressBar(this.progressBar.getProgress());
+        } else {
+            if (fab.getWidth() == 0) {
+                QeUtil.doOnMeasureView(this.fab, new QeUtil.Do.WithIt<View>() {
+                    @Override
+                    public void doWithIt(View it) {
+                        buildProgressBar();
+                    }
+                });
+            } else {
+                buildProgressBar();
+            }
+        }
+    }
+    private void buildProgressBar() {
         inflate(getContext(), R.layout.progress_bar_fab, (ViewGroup) findViewById(R.id.coordinator));
         progressBar = (ProgressBar) coordinatorLayout.getChildAt(coordinatorLayout.getChildCount() - 1);
+        progressBar.setX(fab.getX());
+        progressBar.setY(fab.getY());
 
-        QeUtil.doOnMeasureView(fab, new QeUtil.Do.WithIt<View>() {
-            @Override
-            public void doWithIt(View it) {
-                progressBar.setX(fab.getX());
-                progressBar.setY(fab.getY());
-                progressBar.getLayoutParams().height = fab.getHeight();
-                progressBar.getLayoutParams().width = fab.getWidth();
-                progressBar.setMax(MAX_PB);
-                progressBar.setProgressTintList(ColorStateList.valueOf(colorPrimary));
-            }
-        });
+        progressBar.getLayoutParams().height = fab.getHeight();
+        progressBar.getLayoutParams().width = fab.getWidth();
+        progressBar.setMax(MAX_PB);
+        progressBar.setProgressTintList(ColorStateList.valueOf(colorPrimary));
+
+        if (this.defProgress != null) {
+            setProgress(this.defProgress);
+            this.defProgress = null;
+        }
     }
     public void removeProgressBar() {
         if (progressBar != null) {
@@ -371,7 +392,7 @@ public class BottomAppBarQe extends LinearLayout {
             Anim anim = new Anim(progressBar);
             anim.scale(1f, 1.5f).alpha(0f).start();
 
-           coordinatorLayout.removeView(progressBar);
+            this.coordinatorLayout.removeView(this.progressBar);
         }
     }
     public void refreshProgressBar(int progress) {
@@ -388,6 +409,8 @@ public class BottomAppBarQe extends LinearLayout {
     public void setProgress(@IntRange(from = 0, to = MAX_PB) int value) {
         if (progressBar != null) {
             Anim.ViewAnimation.ProgressBarAnim.progressAnimation(progressBar, value);
+        } else {
+            this.defProgress = value;
         }
     }
     public void addProgress(int value) {
