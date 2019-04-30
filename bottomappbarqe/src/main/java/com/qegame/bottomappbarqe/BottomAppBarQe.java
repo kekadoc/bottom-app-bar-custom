@@ -1,11 +1,11 @@
 package com.qegame.bottomappbarqe;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -31,14 +31,16 @@ import com.qegame.animsimple.Anim;
 import com.qegame.qeutil.QeUtil;
 
 import java.util.ArrayList;
-import java.util.Queue;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class BottomAppBarQe extends LinearLayout {
-    private final String TAG = "BottomAppBarCustom-ИНФ";
+    private static final String TAG = "BottomAppBarQe-TAG";
 
     /** Максимальное значение прогресса у ProgressBar */
     private final int MAX_PB = 360;
     private final long SNACK_BAR_ANIM_DURATION = 300;
+    private final int DURATION_SNACK_DEFAULT = 2500;
 
     public interface FABSettings {
         Drawable getImage();
@@ -248,7 +250,20 @@ public class BottomAppBarQe extends LinearLayout {
 
     public Snackbar showSnackBar(String text, int duration) {
 
-        final Snackbar snackbar = Snackbar.make(this, text, duration);
+        final Snackbar snackbar = Snackbar.make(this, text, Snackbar.LENGTH_INDEFINITE);
+        Timer timer = new Timer();
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                ((Activity) getContext()).runOnUiThread(new TimerTask() {
+                    @Override
+                    public void run() {
+                        animateSnackBarFade(snackbar);
+                    }
+                });
+            }
+        };
+        timer.schedule(timerTask, duration);
 
         snackBarViewBuilder(snackbar, snackbar.getView());
 
@@ -257,18 +272,14 @@ public class BottomAppBarQe extends LinearLayout {
         QeUtil.doOnMeasureView(snackbar.getView(), new QeUtil.Do.WithIt<View>() {
             @Override
             public void doWithIt(View it) {
-                Anim animDefault = Anim.animate(snackbar.getView()).translationY(Anim.TRANSLATION_END, 0, SNACK_BAR_ANIM_DURATION, new OvershootInterpolator(0.8f));
-                Anim anim = snackBarAnimShowBuilder(snackbar.getView(), animDefault);
-                if (anim != null) {
-                    anim.start();
-                }
+                animateSnackBarStart(snackbar);
             }
         });
 
         return snackbar;
     }
     public Snackbar showSnackBar(String text) {
-        return showSnackBar(text, Snackbar.LENGTH_LONG);
+        return showSnackBar(text, DURATION_SNACK_DEFAULT);
     }
 
     public View snackBarViewBuilder(final Snackbar snackbar, View view) {
@@ -288,25 +299,47 @@ public class BottomAppBarQe extends LinearLayout {
         button.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Anim animDefault = Anim.animate(snackbar.getView()).translationY(0, Anim.TRANSLATION_END, SNACK_BAR_ANIM_DURATION, new AnticipateInterpolator(1f));
-                Anim anim = snackBarAnimFadeBuilder(snackbar.getView(), animDefault);
-                if (anim != null) {
-                    anim.setOnAnimEnd(new Anim.OnAnimEnd() {
-                        @Override
-                        public void onEnd(Anim anim) {
-                            snackbar.dismiss();
-                        }
-                    });
-
-                    anim.start();
-                }
+                animateSnackBarFade(snackbar);
             }
         });
         button.setText("Ok");
         button.setTextColor(colorAccent);
         button.setVisibility(VISIBLE);
+        snackbar.addCallback(new Snackbar.Callback()  {
+            @Override
+            public void onDismissed(Snackbar snackbar, int event) {
+
+            }
+            @Override
+            public void onShown(Snackbar snackbar) {
+
+            }
+        });
 
         return view;
+    }
+
+    private void animateSnackBarFade(final Snackbar snackbar) {
+        if (snackbar.isShown()) {
+            Anim animDefault = Anim.animate(snackbar.getView()).translationY(0, Anim.TRANSLATION_END, SNACK_BAR_ANIM_DURATION, new AnticipateInterpolator(1f));
+            Anim anim = snackBarAnimFadeBuilder(snackbar.getView(), animDefault);
+            if (anim != null) {
+                anim.setEndListener(new QeUtil.Do.WithIt<Anim>() {
+                    @Override
+                    public void doWithIt(Anim it) {
+                        snackbar.dismiss();
+                    }
+                });
+                anim.start();
+            }
+        }
+    }
+    private void animateSnackBarStart(final Snackbar snackbar) {
+        Anim animDefault = Anim.animate(snackbar.getView()).translationY(Anim.TRANSLATION_END, 0, SNACK_BAR_ANIM_DURATION, new OvershootInterpolator(0.8f));
+        Anim anim = snackBarAnimShowBuilder(snackbar.getView(), animDefault);
+        if (anim != null) {
+            anim.start();
+        }
     }
 
     public Anim snackBarAnimShowBuilder(View viewSnack, Anim animDefault) {
@@ -318,13 +351,19 @@ public class BottomAppBarQe extends LinearLayout {
 
     public void showProgressBar() {
         inflate(getContext(), R.layout.progress_bar_fab, (ViewGroup) findViewById(R.id.coordinator));
-
         progressBar = (ProgressBar) coordinatorLayout.getChildAt(coordinatorLayout.getChildCount() - 1);
-        progressBar.setX(fab.getX());
-        progressBar.setY(fab.getY());
-        progressBar.getLayoutParams().height = fab.getHeight();
-        progressBar.getLayoutParams().width = fab.getWidth();
-        progressBar.setMax(MAX_PB);
+
+        QeUtil.doOnMeasureView(fab, new QeUtil.Do.WithIt<View>() {
+            @Override
+            public void doWithIt(View it) {
+                progressBar.setX(fab.getX());
+                progressBar.setY(fab.getY());
+                progressBar.getLayoutParams().height = fab.getHeight();
+                progressBar.getLayoutParams().width = fab.getWidth();
+                progressBar.setMax(MAX_PB);
+                progressBar.setProgressTintList(ColorStateList.valueOf(colorPrimary));
+            }
+        });
     }
     public void removeProgressBar() {
         if (progressBar != null) {
@@ -345,17 +384,24 @@ public class BottomAppBarQe extends LinearLayout {
             progressBar.setProgress(progress);
         }
     }
+
     public void setProgress(@IntRange(from = 0, to = MAX_PB) int value) {
         if (progressBar != null) {
             Anim.ViewAnimation.ProgressBarAnim.progressAnimation(progressBar, value);
         }
     }
-    public void setProgressPercent(@FloatRange(from = 0.0, to = 100.0) float percent) {
-        if (progressBar != null) {
-            int step = (int) ((MAX_PB / 100.0) * percent);
-            Anim.ViewAnimation.ProgressBarAnim.progressAnimation(progressBar, step);
-        }
+    public void addProgress(int value) {
+        setProgress(this.progressBar.getProgress() + value);
     }
+    public void addProgressPercent(int percent) {
+        int step = (int) ((MAX_PB / 100.0) * percent);
+        setProgress(this.progressBar.getProgress() + step);
+    }
+    public void setProgressPercent(@FloatRange(from = 0.0, to = 100.0) float percent) {
+        int step = (int) ((MAX_PB / 100.0) * percent);
+        setProgress(step);
+    }
+
     public void setColorPanel(int color) {
         this.colorPrimary = color;
         this.bottomAppBar.setBackgroundTint(ColorStateList.valueOf(color));
