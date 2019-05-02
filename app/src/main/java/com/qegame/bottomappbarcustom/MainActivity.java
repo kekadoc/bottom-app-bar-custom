@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -21,7 +22,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         bottomAppBarQe = findViewById(R.id.bar);
         bottomAppBarQe.setConstruction(getFabCenter());
-        bottomAppBarQe.showProgressBar();
     }
 
     public BottomAppBarQe.Construction.FABCenter getFabCenter() {
@@ -36,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        //bottomAppBarQe.showProgressBar();
                         bottomAppBarQe.addProgressPercent(20);
                     }
                 };
@@ -55,7 +54,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public View.OnClickListener getClickListener() {
-                return null;
+                return new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        bottomAppBarQe.showProgressBar();
+                        Log.e(TAG, "onClick: 0");
+                    }
+                };
             }
         };
         BottomAppBarQe.IconSettings icon_1 = new BottomAppBarQe.IconSettings() {
@@ -66,9 +71,16 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public View.OnClickListener getClickListener() {
-                return null;
+                return new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        bottomAppBarQe.removeProgressBar();
+                        Log.e(TAG, "onClick: 1");
+                    }
+                };
             }
         };
+
         BottomAppBarQe.IconSettings icon_2 = new BottomAppBarQe.IconSettings() {
             @Override
             public Drawable getImage() {
@@ -77,7 +89,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public View.OnClickListener getClickListener() {
-                return null;
+                return new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Log.e(TAG, "onClick: 2");
+                    }
+                };
             }
         };
         BottomAppBarQe.IconSettings icon_3 = new BottomAppBarQe.IconSettings() {
@@ -88,10 +105,15 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public View.OnClickListener getClickListener() {
-                return null;
+                return new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Log.e(TAG, "onClick: 3");
+                    }
+                };
             }
         };
-        return new BottomAppBarQe.Construction.FABCenter(fab, new BottomAppBarQe.IconSettings[] {icon_0}, new BottomAppBarQe.IconSettings[] {icon_2});
+        return new BottomAppBarQe.Construction.FABCenter(fab, new BottomAppBarQe.IconSettings[] {icon_0, icon_1}, new BottomAppBarQe.IconSettings[] {icon_2, icon_3});
     }
     public BottomAppBarQe.Construction.FABEnd getFabEnd() {
         BottomAppBarQe.FABSettings fab = new BottomAppBarQe.FABSettings() {
