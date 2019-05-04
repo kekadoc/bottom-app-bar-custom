@@ -12,7 +12,7 @@ import com.qegame.animsimple.Anim;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
 
 public class MainActivity extends AppCompatActivity {
-    private final String TAG = "MainActivity-ИНФ";
+    private static final String TAG = "MainActivity-TAG";
 
     private BottomAppBarQe bottomAppBarQe;
 

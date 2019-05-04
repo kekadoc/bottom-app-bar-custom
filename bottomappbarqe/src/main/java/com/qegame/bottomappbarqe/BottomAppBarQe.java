@@ -1,14 +1,11 @@
 package com.qegame.bottomappbarqe;
 
-import android.animation.Animator;
-import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -196,6 +193,7 @@ public class BottomAppBarQe extends LinearLayout {
                 getFab().setClickable(true);
             }
         }
+        removeProgressBar();
     }
 
     //endregion
@@ -359,20 +357,16 @@ public class BottomAppBarQe extends LinearLayout {
             refreshProgressBar(this.progressBar.getProgress());
         } else {
             if (fab.getWidth() == 0) {
-                Log.e(TAG, "showProgressBar: 0");
                 QeUtil.doOnMeasureView(this.fab, new QeUtil.Do.WithIt<View>() {
                     @Override
                     public void doWithIt(View it) {
-                        Log.e(TAG, "doWithIt: 1");
                         buildProgressBar();
                     }
                 });
             } else {
-                Log.e(TAG, "doWithIt: 2");
                 buildProgressBar();
             }
         }
-        Log.e(TAG, "showProgressBar: " + progressBar.getProgress());
     }
     private void buildProgressBar() {
         inflate(getContext(), R.layout.progress_bar_fab, (ViewGroup) findViewById(R.id.coordinator));
@@ -385,7 +379,6 @@ public class BottomAppBarQe extends LinearLayout {
         progressBar.setMax(MAX_PB);
         progressBar.setProgressTintList(ColorStateList.valueOf(colorPrimary));
         progressBar.setProgress(0);
-        Log.e(TAG, "buildProgressBar: " + progressBar.getProgress());
 
         if (this.defProgress != null) {
             setProgress(this.defProgress);
