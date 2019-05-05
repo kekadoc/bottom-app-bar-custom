@@ -33,6 +33,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'com.google.android.material:material:1.1.0-alpha05'
 
-    api 'com.github.qeGame:AnimSimple:0.6.4'
-    implementation 'com.github.qeGame:qeUtilLib:0.2.2'
+    api 'com.github.qeGame:AnimSimple:0.6.5'
+    implementation 'com.github.qeGame:qeUtilLib:0.2.5'
+    implementation 'com.github.qeGame:QeShaper:0.1.2'
 }

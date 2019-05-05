@@ -4,8 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -25,9 +28,11 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.shape.CutCornerTreatment;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.snackbar.SnackbarContentLayout;
 import com.qegame.animsimple.Anim;
+import com.qegame.qeshaper.QeShaper;
 import com.qegame.qeutil.QeUtil;
 
 import java.util.ArrayList;
@@ -36,6 +41,11 @@ import java.util.TimerTask;
 
 public class BottomAppBarQe extends LinearLayout {
     private static final String TAG = "BottomAppBarQe-TAG";
+
+    public enum Corner {
+        CUT,
+        ROUND
+    }
 
     /** Максимальное значение прогресса у ProgressBar */
     private final int MAX_PB = 360;
@@ -70,8 +80,10 @@ public class BottomAppBarQe extends LinearLayout {
     private int colorAccent;
 
     private Construction construction;
-
     private Integer defProgress;
+    private boolean progressBarShown;
+    private Corner corners;
+    private int radius;
 
     public BottomAppBarQe(Context context) {
         super(context);
@@ -163,6 +175,8 @@ public class BottomAppBarQe extends LinearLayout {
 
         setColorPanel(colorPrimary);
         getFab().setBackgroundTintList(ColorStateList.valueOf(colorAccent));
+
+        setSnackBarCorners(Corner.ROUND, (int) QeUtil.dp(context, 3));
     }
 
     //region Getters/Setters
@@ -194,6 +208,10 @@ public class BottomAppBarQe extends LinearLayout {
             }
         }
         removeProgressBar();
+    }
+
+    public boolean isProgressBarShown() {
+        return progressBarShown;
     }
 
     //endregion
@@ -284,8 +302,10 @@ public class BottomAppBarQe extends LinearLayout {
     public Snackbar showSnackBar(String text) {
         return showSnackBar(text, DURATION_SNACK_DEFAULT);
     }
-
     public View snackBarViewBuilder(final Snackbar snackbar, View view) {
+        QeUtil.Density d = new QeUtil.Density(getContext());
+
+        int color = getResources().getColor(com.google.android.material.R.color.design_snackbar_background_color);
         int marginSide = (int) getResources().getDimension(R.dimen.margin_side_snackbar);
         view.setElevation(getResources().getDimension(R.dimen.elevation_snack));
         CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) view.getLayoutParams();
@@ -308,48 +328,39 @@ public class BottomAppBarQe extends LinearLayout {
         button.setText("Ok");
         button.setTextColor(colorAccent);
         button.setVisibility(VISIBLE);
-        snackbar.addCallback(new Snackbar.Callback()  {
-            @Override
-            public void onDismissed(Snackbar snackbar, int event) {
 
-            }
-            @Override
-            public void onShown(Snackbar snackbar) {
+        Drawable background = QeShaper.buildDrawable(new CutCornerTreatment(d.dp(5)), new QeShaper.Corner[]{}, color, 0, colorPrimary);
+        button.setBackground(background);
 
-            }
-        });
+        button.setPadding(0, 0, 0, 0);
+
+        LinearLayout.LayoutParams lp = (LayoutParams) button.getLayoutParams();
+        lp.height = d.dp(36);
+        lp.setMargins(d.dp(8),d.dp(6), d.dp(8), d.dp(6));
+
+        if (this.corners == Corner.CUT) {
+            view.setBackground(QeShaper.getCutCorners(d.dp(radius), color, colorAccent));
+            button.setBackground(QeShaper.getCutCorners(d.dp(radius), color, colorPrimary));
+        } else {
+            view.setBackground(QeShaper.getRoundCorners(d.dp(radius), color, colorAccent));
+            button.setBackground(QeShaper.getRoundCorners(d.dp(radius), color, colorPrimary));
+        }
 
         return view;
     }
-
-    private void animateSnackBarFade(final Snackbar snackbar) {
-        if (snackbar.isShown()) {
-            Anim animDefault = Anim.animate(snackbar.getView()).translationY(0, Anim.TRANSLATION_END, SNACK_BAR_ANIM_DURATION, new AnticipateInterpolator(1f));
-            Anim anim = snackBarAnimFadeBuilder(snackbar.getView(), animDefault);
-            if (anim != null) {
-                anim.setEndListener(new QeUtil.Do.WithIt<Anim>() {
-                    @Override
-                    public void doWithIt(Anim it) {
-                        snackbar.dismiss();
-                    }
-                });
-                anim.start();
-            }
-        }
-    }
-    private void animateSnackBarStart(final Snackbar snackbar) {
-        Anim animDefault = Anim.animate(snackbar.getView()).translationY(Anim.TRANSLATION_END, 0, SNACK_BAR_ANIM_DURATION, new OvershootInterpolator(0.8f));
-        Anim anim = snackBarAnimShowBuilder(snackbar.getView(), animDefault);
-        if (anim != null) {
-            anim.start();
-        }
-    }
-
     public Anim snackBarAnimShowBuilder(View viewSnack, Anim animDefault) {
         return animDefault;
     }
     public Anim snackBarAnimFadeBuilder(View viewSnack, Anim animDefault) {
         return animDefault;
+    }
+    public void setSnackBarCorners(Corner corners, int radius) {
+        this.corners = corners;
+        this.radius = radius;
+    }
+    public void setSnackBarCorners(Corner corners) {
+        setSnackBarCorners(corners, this.radius);
+        this.corners = corners;
     }
 
     public void showProgressBar() {
@@ -367,33 +378,23 @@ public class BottomAppBarQe extends LinearLayout {
                 buildProgressBar();
             }
         }
-    }
-    private void buildProgressBar() {
-        inflate(getContext(), R.layout.progress_bar_fab, (ViewGroup) findViewById(R.id.coordinator));
-        progressBar = (ProgressBar) coordinatorLayout.getChildAt(coordinatorLayout.getChildCount() - 1);
-        progressBar.setX(fab.getX());
-        progressBar.setY(fab.getY());
-
-        progressBar.getLayoutParams().height = fab.getHeight();
-        progressBar.getLayoutParams().width = fab.getWidth();
-        progressBar.setMax(MAX_PB);
-        progressBar.setProgressTintList(ColorStateList.valueOf(colorPrimary));
-        progressBar.setProgress(0);
-
-        if (this.defProgress != null) {
-            setProgress(this.defProgress);
-            this.defProgress = null;
-        }
+        this.progressBarShown = true;
     }
     public void removeProgressBar() {
         if (this.progressBar != null) {
-            this.progressBar.setProgress(0);
             Anim anim = new Anim(this.progressBar);
-            anim.scale(1f, 1.5f).alpha(0f).start();
-            this.coordinatorLayout.removeView(this.progressBar);
-            this.progressBar = null;
-            this.defProgress = null;
+            anim.setEndListener(new QeUtil.Do.WithIt<Anim>() {
+                @Override
+                public void doWithIt(Anim it) {
+                    progressBar.setProgress(0);
+                    coordinatorLayout.removeView(progressBar);
+                    progressBar = null;
+                    defProgress = null;
+                }
+            });
+            anim.scale(1f, 1.5f).alpha(0f).setDuration(200L).start();
         }
+        this.progressBarShown = false;
     }
     public void refreshProgressBar(int progress) {
         if (progressBar != null) {
@@ -405,7 +406,6 @@ public class BottomAppBarQe extends LinearLayout {
             progressBar.setProgress(progress);
         }
     }
-
     public void setProgress(@IntRange(from = 0, to = MAX_PB) int value) {
         if (progressBar != null) {
             Anim.ViewAnimation.ProgressBarAnim.progressAnimation(progressBar, value);
@@ -428,7 +428,6 @@ public class BottomAppBarQe extends LinearLayout {
         int step = (int) ((MAX_PB / 100.0) * percent);
         setProgress(step);
     }
-
     public int getProgress() {
         if (this.progressBar != null) return this.progressBar.getProgress();
         return 0;
@@ -438,12 +437,17 @@ public class BottomAppBarQe extends LinearLayout {
         return 0;
     }
 
+
     public void setColorPanel(int color) {
         this.colorPrimary = color;
         this.bottomAppBar.setBackgroundTint(ColorStateList.valueOf(color));
         icons_all_left.setBackgroundColor(color);
         icons_left.setBackgroundColor(color);
         icons_right.setBackgroundColor(color);
+    }
+    public void setFabColor(int color) {
+        this.colorAccent = color;
+        getFab().setBackgroundTintList(ColorStateList.valueOf(colorAccent));
     }
 
     public void performClickIcon(int position) {
@@ -470,6 +474,22 @@ public class BottomAppBarQe extends LinearLayout {
         }
     }
 
+    private void buildProgressBar() {
+        inflate(getContext(), R.layout.progress_bar_fab, (ViewGroup) findViewById(R.id.coordinator));
+        progressBar = (ProgressBar) coordinatorLayout.getChildAt(coordinatorLayout.getChildCount() - 1);
+        progressBar.setX(fab.getX());
+        progressBar.setY(fab.getY());
+
+        progressBar.getLayoutParams().height = fab.getHeight();
+        progressBar.getLayoutParams().width = fab.getWidth();
+        progressBar.setMax(MAX_PB);
+        progressBar.setProgressTintList(ColorStateList.valueOf(colorPrimary));
+
+        if (this.defProgress != null) {
+            setProgress(this.defProgress);
+            this.defProgress = null;
+        }
+    }
     private void construct(final FABSettings fabSettings, int fabAlignment) {
 
         icons_all_left.setVisibility(GONE);
@@ -489,6 +509,28 @@ public class BottomAppBarQe extends LinearLayout {
         }
         for (AppCompatImageView anImages : images_right) {
             anImages.setVisibility(GONE);
+        }
+    }
+    private void animateSnackBarFade(final Snackbar snackbar) {
+        if (snackbar.isShown()) {
+            Anim animDefault = Anim.animate(snackbar.getView()).translationY(0, Anim.TRANSLATION_END, SNACK_BAR_ANIM_DURATION, new AnticipateInterpolator(1f));
+            Anim anim = snackBarAnimFadeBuilder(snackbar.getView(), animDefault);
+            if (anim != null) {
+                anim.setEndListener(new QeUtil.Do.WithIt<Anim>() {
+                    @Override
+                    public void doWithIt(Anim it) {
+                        snackbar.dismiss();
+                    }
+                });
+                anim.start();
+            }
+        }
+    }
+    private void animateSnackBarStart(final Snackbar snackbar) {
+        Anim animDefault = Anim.animate(snackbar.getView()).translationY(Anim.TRANSLATION_END, 0, SNACK_BAR_ANIM_DURATION, new OvershootInterpolator(0.8f));
+        Anim anim = snackBarAnimShowBuilder(snackbar.getView(), animDefault);
+        if (anim != null) {
+            anim.start();
         }
     }
 

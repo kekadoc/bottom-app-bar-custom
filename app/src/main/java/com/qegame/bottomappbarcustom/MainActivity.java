@@ -2,14 +2,16 @@ package com.qegame.bottomappbarcustom;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
-import com.google.android.material.snackbar.Snackbar;
 import com.qegame.animsimple.Anim;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
+
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity-TAG";
@@ -22,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         bottomAppBarQe = findViewById(R.id.bar);
         bottomAppBarQe.setConstruction(getFabCenter());
+        bottomAppBarQe.setSnackBarCorners(BottomAppBarQe.Corner.CUT, 10);
     }
 
     public BottomAppBarQe.Construction.FABCenter getFabCenter() {
@@ -58,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         bottomAppBarQe.showProgressBar();
-                        Log.e(TAG, "onClick: 0");
                     }
                 };
             }
@@ -75,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         bottomAppBarQe.removeProgressBar();
-                        Log.e(TAG, "onClick: 1");
                     }
                 };
             }
@@ -92,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Log.e(TAG, "onClick: 2");
+                        bottomAppBarQe.showSnackBar("This is SnackBar!", 100000000);
                     }
                 };
             }
@@ -108,7 +109,19 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Log.e(TAG, "onClick: 3");
+                        Random random = new Random();
+                        int r = random.nextInt(256);
+                        int g = random.nextInt(256);
+                        int b = random.nextInt(256);
+                        int color = Color.argb(255, r, g ,b);
+                        bottomAppBarQe.setColorPanel(color);
+
+                        int r1 = random.nextInt(256);
+                        int g1 = random.nextInt(256);
+                        int b1 = random.nextInt(256);
+                        int color1 = Color.argb(255, r1, g1 ,b1);
+
+                        bottomAppBarQe.setFabColor(color1);
                     }
                 };
             }
