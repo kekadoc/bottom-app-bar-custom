@@ -381,15 +381,18 @@ public class BottomAppBarQe extends LinearLayout {
         this.progressBarShown = true;
     }
     public void removeProgressBar() {
+        Log.e(TAG, "removeProgressBar: ");
         if (this.progressBar != null) {
             Anim anim = new Anim(this.progressBar);
             anim.setEndListener(new QeUtil.Do.WithIt<Anim>() {
                 @Override
                 public void doWithIt(Anim it) {
-                    progressBar.setProgress(0);
-                    coordinatorLayout.removeView(progressBar);
-                    progressBar = null;
-                    defProgress = null;
+                    if (progressBar != null) {
+                        progressBar.setProgress(0);
+                        coordinatorLayout.removeView(progressBar);
+                        progressBar = null;
+                        defProgress = null;
+                    }
                 }
             });
             anim.scale(1f, 1.5f).alpha(0f).setDuration(200L).start();
