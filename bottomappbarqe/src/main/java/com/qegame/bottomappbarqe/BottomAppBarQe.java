@@ -1,5 +1,7 @@
 package com.qegame.bottomappbarqe;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
@@ -33,6 +35,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.snackbar.SnackbarContentLayout;
 import com.qegame.animsimple.Anim;
 import com.qegame.qeshaper.QeShaper;
+import com.qegame.qeutil.Listener.Listener;
 import com.qegame.qeutil.QeUtil;
 
 import java.util.ArrayList;
@@ -48,9 +51,9 @@ public class BottomAppBarQe extends LinearLayout {
     }
 
     /** Максимальное значение прогресса у ProgressBar */
-    private final int MAX_PB = 360;
-    private final long SNACK_BAR_ANIM_DURATION = 300;
-    private final int DURATION_SNACK_DEFAULT = 2500;
+    private static final int MAX_PB = 360;
+    private static final long SNACK_BAR_ANIM_DURATION = 300;
+    private static final int DURATION_SNACK_DEFAULT = 2500;
 
     public interface FABSettings {
         Drawable getImage();
@@ -84,6 +87,8 @@ public class BottomAppBarQe extends LinearLayout {
     private boolean progressBarShown;
     private Corner corners;
     private int radius;
+
+    private Listener.Simple onProgressCompletely;
 
     public BottomAppBarQe(Context context) {
         super(context);
@@ -177,6 +182,8 @@ public class BottomAppBarQe extends LinearLayout {
         getFab().setBackgroundTintList(ColorStateList.valueOf(colorAccent));
 
         setSnackBarCorners(Corner.ROUND, (int) QeUtil.dp(context, 3));
+
+        this.onProgressCompletely = new Listener.Simple();
     }
 
     //region Getters/Setters
@@ -212,6 +219,10 @@ public class BottomAppBarQe extends LinearLayout {
 
     public boolean isProgressBarShown() {
         return progressBarShown;
+    }
+
+    public Listener.Simple getOnProgressCompletely() {
+        return onProgressCompletely;
     }
 
     //endregion
@@ -302,7 +313,7 @@ public class BottomAppBarQe extends LinearLayout {
     public Snackbar showSnackBar(String text) {
         return showSnackBar(text, DURATION_SNACK_DEFAULT);
     }
-    public View snackBarViewBuilder(final Snackbar snackbar, View view) {
+    protected View snackBarViewBuilder(final Snackbar snackbar, View view) {
         QeUtil.Density d = new QeUtil.Density(getContext());
 
         int color = getResources().getColor(com.google.android.material.R.color.design_snackbar_background_color);
@@ -348,10 +359,10 @@ public class BottomAppBarQe extends LinearLayout {
 
         return view;
     }
-    public Anim snackBarAnimShowBuilder(View viewSnack, Anim animDefault) {
+    protected Anim snackBarAnimShowBuilder(View viewSnack, Anim animDefault) {
         return animDefault;
     }
-    public Anim snackBarAnimFadeBuilder(View viewSnack, Anim animDefault) {
+    protected Anim snackBarAnimFadeBuilder(View viewSnack, Anim animDefault) {
         return animDefault;
     }
     public void setSnackBarCorners(Corner corners, int radius) {
@@ -381,7 +392,6 @@ public class BottomAppBarQe extends LinearLayout {
         this.progressBarShown = true;
     }
     public void removeProgressBar() {
-        Log.e(TAG, "removeProgressBar: ");
         if (this.progressBar != null) {
             Anim anim = new Anim(this.progressBar);
             anim.setEndListener(new QeUtil.Do.WithIt<Anim>() {
@@ -411,7 +421,28 @@ public class BottomAppBarQe extends LinearLayout {
     }
     public void setProgress(@IntRange(from = 0, to = MAX_PB) int value) {
         if (progressBar != null) {
-            Anim.ViewAnimation.ProgressBarAnim.progressAnimation(progressBar, value);
+            ObjectAnimator anim = Anim.ViewAnimation.ProgressBarAnim.progressAnimation(progressBar, value);
+            if (value >= MAX_PB) anim.addListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        getOnProgressCompletely().doIt();
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+
+                    }
+                });
         } else {
             this.defProgress = value;
         }
@@ -439,7 +470,6 @@ public class BottomAppBarQe extends LinearLayout {
         if (this.progressBar != null) return this.progressBar.getProgress() / this.progressBar.getMax() * 100;
         return 0;
     }
-
 
     public void setColorPanel(int color) {
         this.colorPrimary = color;

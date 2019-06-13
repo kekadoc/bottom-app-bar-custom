@@ -10,6 +10,7 @@ import android.view.View;
 
 import com.qegame.animsimple.Anim;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
+import com.qegame.qeutil.Listener.Subscriber;
 
 import java.util.Random;
 
@@ -25,6 +26,12 @@ public class MainActivity extends AppCompatActivity {
         bottomAppBarQe = findViewById(R.id.bar);
         bottomAppBarQe.setConstruction(getFabCenter());
         bottomAppBarQe.setSnackBarCorners(BottomAppBarQe.Corner.CUT, 10);
+        bottomAppBarQe.getOnProgressCompletely().addSub(new Subscriber.Simple() {
+            @Override
+            public void doIt() {
+                bottomAppBarQe.showSnackBar("Complete!");
+            }
+        });
     }
 
     public BottomAppBarQe.Construction.FABCenter getFabCenter() {
