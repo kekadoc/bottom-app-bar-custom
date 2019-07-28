@@ -5,12 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import com.qegame.animsimple.Anim;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
-import com.qegame.qeutil.Listener.Subscriber;
+import com.qegame.qeutil.listener.Subscriber;
 
 import java.util.Random;
 
