@@ -7,11 +7,8 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.qegame.animsimple.anim.Anim;
 import com.qegame.animsimple.anim.MoveLeft;
-import com.qegame.animsimple.params.OtherParams;
+import com.qegame.animsimple.path.params.OtherParams;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
 import com.qegame.qeutil.QeUtil;
 import com.qegame.qeutil.listener.Subscriber;
