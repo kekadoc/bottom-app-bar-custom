@@ -2,23 +2,28 @@ package com.qegame.bottomappbarqe;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnticipateInterpolator;
+import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.FloatRange;
 import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.Size;
 import androidx.appcompat.widget.AppCompatImageView;
@@ -30,10 +35,25 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.shape.CutCornerTreatment;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.snackbar.SnackbarContentLayout;
-import com.qegame.animsimple.Anim;
+import com.qegame.animsimple.Durations;
+import com.qegame.animsimple.anim.Anim;
+import com.qegame.animsimple.anim.AnimView;
+import com.qegame.animsimple.anim.MoveLeft;
+import com.qegame.animsimple.anim.MoveRight;
+import com.qegame.animsimple.params.AnimParams;
+import com.qegame.animsimple.params.OtherParams;
+import com.qegame.animsimple.params.SimpleParams;
+import com.qegame.animsimple.path.Alpha;
+import com.qegame.animsimple.path.Path;
+import com.qegame.animsimple.path.ScaleX;
+import com.qegame.animsimple.path.ScaleY;
+import com.qegame.animsimple.path.TranslationX;
+import com.qegame.animsimple.path.TranslationY;
+import com.qegame.animsimple.viewsanimations.ProgressBarAnimation;
 import com.qegame.qeshaper.QeShaper;
 import com.qegame.qeutil.listener.Listener;
 import com.qegame.qeutil.QeUtil;
+import com.qegame.qeutil.listener.Subscriber;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -49,13 +69,16 @@ public class BottomAppBarQe extends LinearLayout {
 
     /** Максимальное значение прогресса у ProgressBar */
     private static final int MAX_PB = 360;
-    private static final long SNACK_BAR_ANIM_DURATION = 300;
-    private static final int DURATION_SNACK_DEFAULT = 2500;
+    private static final long SNACK_BAR_ANIM_DURATION = 500;
+    private static final long DURATION_SNACK_DEFAULT = 2500;
+    private static final long DURATION_ICONS = 800;
 
     public interface FABSettings {
         Drawable getImage();
         OnClickListener getClickListener();
-        Anim getAnimation(Anim animDefault);
+        default Anim<FloatingActionButton> getAnimation(Anim<FloatingActionButton> animDefault) {
+            return animDefault;
+        }
     }
     public interface IconSettings {
         Drawable getImage();
@@ -79,6 +102,7 @@ public class BottomAppBarQe extends LinearLayout {
     private int colorPrimary;
     private int colorAccent;
 
+    @NonNull
     private Construction construction;
     private Integer defProgress;
     private boolean progressBarShown;
@@ -198,7 +222,11 @@ public class BottomAppBarQe extends LinearLayout {
             getFab().setImageDrawable(fabSettings.getImage());
 
             if (animate) {
-                Anim anim_default = Anim.animate(fab).scale(0f, 1f, Anim.DURATION_NORMAL, new OvershootInterpolator());
+                Anim<FloatingActionButton> anim_default = Anim.animate(fab);
+                anim_default
+                        .play(new ScaleX<>(new AnimParams.OfFloat<>(0f, 1f, 1000)))
+                        .with(new ScaleY<>(new AnimParams.OfFloat<>(0f, 1f, 1000)));
+
                 Anim anim = fabSettings.getAnimation(anim_default);
                 if (anim != null) anim.start();
             }
@@ -224,14 +252,16 @@ public class BottomAppBarQe extends LinearLayout {
 
     //endregion
 
+    @NonNull
     public FloatingActionButton getFab() {
         return fab;
     }
+    @NonNull
     public BottomAppBar getBottomAppBar() {
         return bottomAppBar;
     }
-
-    public void setConstruction(Construction construction) {
+    /** Сменить конструкцию */
+    public void setConstruction(@NonNull Construction construction) {
         this.construction = construction;
 
         if (construction instanceof Construction.FABEnd) {
@@ -244,8 +274,8 @@ public class BottomAppBarQe extends LinearLayout {
                 final IconSettings iconSettings = construct.iconSettings[i];
                 images_all_left[i].setOnClickListener(iconSettings.getClickListener());
             }
-            Anim anim = new Anim.MoveLeft(icons_all_left, Anim.DURATION_VERY_VERY_LONG, new OvershootInterpolator());
-            anim.start();
+
+            MoveLeft.animate(icons_all_left, new OtherParams.Smart(DURATION_ICONS, new OvershootInterpolator())).start();
         }
 
         if (construction instanceof Construction.FABCenter) {
@@ -269,15 +299,13 @@ public class BottomAppBarQe extends LinearLayout {
                 }
             }
 
-            Anim anim_left = new Anim.MoveLeft(icons_left, Anim.DURATION_VERY_VERY_LONG, new OvershootInterpolator());
-            anim_left.start();
-
-            Anim anim_right = new Anim.MoveRight(icons_right, Anim.DURATION_VERY_VERY_LONG, new OvershootInterpolator());
-            anim_right.start();
+            MoveLeft.animate(icons_left, new OtherParams.Smart(DURATION_ICONS, new OvershootInterpolator())).start();
+            MoveRight.animate(icons_right, new OtherParams.Smart(DURATION_ICONS, new OvershootInterpolator())).start();
         }
     }
-
-    public Snackbar showSnackBar(String text, int duration) {
+    /** Показать SnackBar */
+    @NonNull
+    public Snackbar showSnackBar(String text, long duration) {
 
         final Snackbar snackbar = Snackbar.make(this, text, Snackbar.LENGTH_INDEFINITE);
         Timer timer = new Timer();
@@ -307,13 +335,158 @@ public class BottomAppBarQe extends LinearLayout {
 
         return snackbar;
     }
+    /** Показать SnackBar */
+    @NonNull
     public Snackbar showSnackBar(String text) {
         return showSnackBar(text, DURATION_SNACK_DEFAULT);
     }
-    protected View snackBarViewBuilder(final Snackbar snackbar, View view) {
-        QeUtil.Density d = new QeUtil.Density(getContext());
+    /** Поменять тип углов у SnackBar */
+    public void setSnackBarCorners(@NonNull Corner corners, int radius) {
+        this.corners = corners;
+        this.radius = radius;
+    }
+    /** Поменять тип углов у SnackBar */
+    public void setSnackBarCorners(@NonNull Corner corners) {
+        setSnackBarCorners(corners, this.radius);
+        this.corners = corners;
+    }
+    /** Показать прогресс */
+    public void showProgressBar() {
+        if (this.progressBar != null) {
+            refreshProgressBar(this.progressBar.getProgress());
+        } else {
+            if (fab.getWidth() == 0) {
+                QeUtil.doOnMeasureView(this.fab, new QeUtil.Do.WithIt<View>() {
+                    @Override
+                    public void doWithIt(View it) {
+                        buildProgressBar();
+                    }
+                });
+            } else {
+                buildProgressBar();
+            }
+        }
+        this.progressBarShown = true;
+    }
+    /** Убрать прогресс */
+    public void removeProgressBar() {
+        if (this.progressBar != null) {
+            Anim<ProgressBar> anim = new Anim<>(progressBar);
+            anim
+                    .play(new Alpha<>(new AnimParams.OfFloat<>(1f, 0f, Durations.DURATION_VERY_VERY_SHORT)))
+                    .with(new ScaleX<>(new AnimParams.OfFloat<>(1f, 1.5f, Durations.DURATION_VERY_VERY_SHORT)))
+                    .with(new ScaleX<>(new AnimParams.OfFloat<>(1f, 1.5f, Durations.DURATION_VERY_VERY_SHORT)));
+            anim.getOnEnd().addSub(new Subscriber.TwoParam<Anim<ProgressBar>, Animator>() {
+                @Override
+                public void doIt(Anim<ProgressBar> first, Animator second) {
+                    if (progressBar != null) {
+                        progressBar.setProgress(0);
+                        coordinatorLayout.removeView(progressBar);
+                        progressBar = null;
+                        defProgress = null;
+                    }
+                }
+            });
+            anim.start();
+        }
+        this.progressBarShown = false;
+    }
+    /** Обновить прогресс */
+    public void refreshProgressBar(int progress) {
+        if (progressBar != null) {
+            progressBar.setX(fab.getX());
+            progressBar.setY(fab.getY());
+            progressBar.getLayoutParams().height = fab.getHeight();
+            progressBar.getLayoutParams().width = fab.getWidth();
+            progressBar.setMax(MAX_PB);
+            progressBar.setProgress(progress);
+        }
+    }
+    /** Изменить уровень прогресса */
+    public void setProgress(@IntRange(from = 0, to = MAX_PB) int value) {
+        if (progressBar != null) {
+            ProgressBarAnimation anim = ProgressBarAnimation.animateProgress(progressBar, new SimpleParams.OfInt(progressBar.getProgress(), value));
+            anim.start();
 
-        int color = getResources().getColor(com.google.android.material.R.color.design_snackbar_background_color);
+            if (value >= MAX_PB) anim.getOnEnd().addSub(new Subscriber.TwoParam<Anim<ProgressBar>, Animator>() {
+                @Override
+                public void doIt(Anim<ProgressBar> first, Animator second) {
+                    getOnProgressCompletely().doIt();
+                }
+            });
+        } else {
+            this.defProgress = value;
+        }
+    }
+    /** Добавить уровень прогресса */
+    public void addProgress(int value) {
+        if (this.progressBar != null) {
+            setProgress(this.progressBar.getProgress() + value);
+        }
+    }
+    /** Добавить процент прогресса */
+    public void addProgressPercent(int percent) {
+        if (this.progressBar != null) {
+            int step = (int) ((MAX_PB / 100.0) * percent);
+            setProgress(this.progressBar.getProgress() + step);
+        }
+    }
+    /** Изменить процент прогресса */
+    public void setProgressPercent(@FloatRange(from = 0.0, to = 100.0) float percent) {
+        int step = (int) ((MAX_PB / 100.0) * percent);
+        setProgress(step);
+    }
+    /** Получить текущий прогресс */
+    public int getProgress() {
+        if (this.progressBar != null) return this.progressBar.getProgress();
+        return 0;
+    }
+    /** Получить текущий прогресс в процентах */
+    public int getProgressPercent() {
+        if (this.progressBar != null) return this.progressBar.getProgress() / this.progressBar.getMax() * 100;
+        return 0;
+    }
+    /** Изменить цвет панели */
+    public void setColorPanel(@ColorInt int color) {
+        this.colorPrimary = color;
+        this.bottomAppBar.setBackgroundTint(ColorStateList.valueOf(color));
+        icons_all_left.setBackgroundColor(color);
+        icons_left.setBackgroundColor(color);
+        icons_right.setBackgroundColor(color);
+    }
+    /** Изменить цвет FAB */
+    public void setFabColor(@ColorInt int color) {
+        this.colorAccent = color;
+        getFab().setBackgroundTintList(ColorStateList.valueOf(colorAccent));
+    }
+    /** Программный клик по иконке на панели
+     * @param position Позиция иконки относительно левого края */
+    public void performClickIcon(int position) {
+        if (this.construction instanceof Construction.FABEnd) {
+            if (icons_all_left.getChildCount() > position) 
+                if (icons_all_left.getChildAt(position).getVisibility() == VISIBLE) 
+                    icons_all_left.getChildAt(position).performClick();
+                
+        }
+        if (this.construction instanceof Construction.FABCenter) {
+            if (icons_left.getChildCount() + icons_right.getChildCount() > position) {
+                ArrayList<View> icons = new ArrayList<>();
+                for (int i = 0; i < icons_left.getChildCount(); i++) 
+                    icons.add(icons_left.getChildAt(i));
+                
+                for (int i = 0; i < icons_right.getChildCount(); i++) 
+                    icons.add(icons_right.getChildAt(i));
+                
+                if (icons.get(position).getVisibility() == VISIBLE) 
+                    icons.get(position).performClick();
+            }
+        }
+    }
+
+    /** Построенеи View у SnackBar */
+    protected View snackBarViewBuilder(@NonNull final Snackbar snackbar, @NonNull View view) {
+        QeUtil.Density d = new QeUtil.Density(getContext());
+        @ColorInt int color = 0xFF323232;
         int marginSide = (int) getResources().getDimension(R.dimen.margin_side_snackbar);
         view.setElevation(getResources().getDimension(R.dimen.elevation_snack));
         CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) view.getLayoutParams();
@@ -333,7 +506,7 @@ public class BottomAppBarQe extends LinearLayout {
                 animateSnackBarFade(snackbar);
             }
         });
-        button.setText("Ok");
+        button.setText("Ok"); // TODO: 11.08.2019 StringRes
         button.setTextColor(colorAccent);
         button.setVisibility(VISIBLE);
 
@@ -356,154 +529,16 @@ public class BottomAppBarQe extends LinearLayout {
 
         return view;
     }
-    protected Anim snackBarAnimShowBuilder(View viewSnack, Anim animDefault) {
+    /** Построенеи анимации появления SnackBar */
+    protected AnimView<View> snackBarAnimShowBuilder(@NonNull View viewSnack, @NonNull AnimView<View> animDefault) {
         return animDefault;
     }
-    protected Anim snackBarAnimFadeBuilder(View viewSnack, Anim animDefault) {
+    /** Построенеи анимации ухода SnackBar */
+    protected AnimView<View> snackBarAnimFadeBuilder(@NonNull View viewSnack, @NonNull AnimView<View> animDefault) {
         return animDefault;
     }
-    public void setSnackBarCorners(Corner corners, int radius) {
-        this.corners = corners;
-        this.radius = radius;
-    }
-    public void setSnackBarCorners(Corner corners) {
-        setSnackBarCorners(corners, this.radius);
-        this.corners = corners;
-    }
 
-    public void showProgressBar() {
-        if (this.progressBar != null) {
-            refreshProgressBar(this.progressBar.getProgress());
-        } else {
-            if (fab.getWidth() == 0) {
-                QeUtil.doOnMeasureView(this.fab, new QeUtil.Do.WithIt<View>() {
-                    @Override
-                    public void doWithIt(View it) {
-                        buildProgressBar();
-                    }
-                });
-            } else {
-                buildProgressBar();
-            }
-        }
-        this.progressBarShown = true;
-    }
-    public void removeProgressBar() {
-        if (this.progressBar != null) {
-            Anim anim = new Anim(this.progressBar);
-            anim.setEndListener(new QeUtil.Do.WithIt<Anim>() {
-                @Override
-                public void doWithIt(Anim it) {
-                    if (progressBar != null) {
-                        progressBar.setProgress(0);
-                        coordinatorLayout.removeView(progressBar);
-                        progressBar = null;
-                        defProgress = null;
-                    }
-                }
-            });
-            anim.scale(1f, 1.5f).alpha(0f).setDuration(200L).start();
-        }
-        this.progressBarShown = false;
-    }
-    public void refreshProgressBar(int progress) {
-        if (progressBar != null) {
-            progressBar.setX(fab.getX());
-            progressBar.setY(fab.getY());
-            progressBar.getLayoutParams().height = fab.getHeight();
-            progressBar.getLayoutParams().width = fab.getWidth();
-            progressBar.setMax(MAX_PB);
-            progressBar.setProgress(progress);
-        }
-    }
-    public void setProgress(@IntRange(from = 0, to = MAX_PB) int value) {
-        if (progressBar != null) {
-            ObjectAnimator anim = Anim.ViewAnimation.ProgressBarAnim.progressAnimation(progressBar, value);
-            if (value >= MAX_PB) anim.addListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        getOnProgressCompletely().doIt();
-                    }
-
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animator animation) {
-
-                    }
-                });
-        } else {
-            this.defProgress = value;
-        }
-    }
-    public void addProgress(int value) {
-        if (this.progressBar != null) {
-            setProgress(this.progressBar.getProgress() + value);
-        }
-    }
-    public void addProgressPercent(int percent) {
-        if (this.progressBar != null) {
-            int step = (int) ((MAX_PB / 100.0) * percent);
-            setProgress(this.progressBar.getProgress() + step);
-        }
-    }
-    public void setProgressPercent(@FloatRange(from = 0.0, to = 100.0) float percent) {
-        int step = (int) ((MAX_PB / 100.0) * percent);
-        setProgress(step);
-    }
-    public int getProgress() {
-        if (this.progressBar != null) return this.progressBar.getProgress();
-        return 0;
-    }
-    public int getProgressPercent() {
-        if (this.progressBar != null) return this.progressBar.getProgress() / this.progressBar.getMax() * 100;
-        return 0;
-    }
-
-    public void setColorPanel(int color) {
-        this.colorPrimary = color;
-        this.bottomAppBar.setBackgroundTint(ColorStateList.valueOf(color));
-        icons_all_left.setBackgroundColor(color);
-        icons_left.setBackgroundColor(color);
-        icons_right.setBackgroundColor(color);
-    }
-    public void setFabColor(int color) {
-        this.colorAccent = color;
-        getFab().setBackgroundTintList(ColorStateList.valueOf(colorAccent));
-    }
-
-    public void performClickIcon(int position) {
-        if (this.construction instanceof Construction.FABEnd) {
-            if (icons_all_left.getChildCount() > position) {
-                if (icons_all_left.getChildAt(position).getVisibility() == VISIBLE) {
-                    icons_all_left.getChildAt(position).performClick();
-                }
-            }
-        }
-        if (this.construction instanceof Construction.FABCenter) {
-            if (icons_left.getChildCount() + icons_right.getChildCount() > position) {
-                ArrayList<View> icons = new ArrayList<>();
-                for (int i = 0; i < icons_left.getChildCount(); i++) {
-                    icons.add(icons_left.getChildAt(i));
-                }
-                for (int i = 0; i < icons_right.getChildCount(); i++) {
-                    icons.add(icons_right.getChildAt(i));
-                }
-                if (icons.get(position).getVisibility() == VISIBLE) {
-                    icons.get(position).performClick();
-                }
-            }
-        }
-    }
-
+    /** Построение ProgressBar */
     private void buildProgressBar() {
         inflate(getContext(), R.layout.progress_bar_fab, (ViewGroup) findViewById(R.id.coordinator));
         progressBar = (ProgressBar) coordinatorLayout.getChildAt(coordinatorLayout.getChildCount() - 1);
@@ -521,47 +556,73 @@ public class BottomAppBarQe extends LinearLayout {
         }
     }
     private void construct(final FABSettings fabSettings, int fabAlignment) {
-
         icons_all_left.setVisibility(GONE);
         icons_left.setVisibility(GONE);
         icons_right.setVisibility(GONE);
 
         setFabSettings(fabSettings, false);
         bottomAppBar.setFabAlignmentMode(fabAlignment);
-        if (bottomAppBar.getFabAlignmentMode() != fabAlignment) {
+        if (bottomAppBar.getFabAlignmentMode() != fabAlignment)
             bottomAppBar.setFabAlignmentMode(fabAlignment);
-        }
-        for (AppCompatImageView anImages : images_all_left) {
+
+        for (AppCompatImageView anImages : images_all_left)
             anImages.setVisibility(GONE);
-        }
-        for (AppCompatImageView anImages : images_left) {
+
+        for (AppCompatImageView anImages : images_left)
             anImages.setVisibility(GONE);
-        }
-        for (AppCompatImageView anImages : images_right) {
+
+        for (AppCompatImageView anImages : images_right)
             anImages.setVisibility(GONE);
-        }
+
     }
     private void animateSnackBarFade(final Snackbar snackbar) {
         if (snackbar.isShown()) {
-            Anim animDefault = Anim.animate(snackbar.getView()).translationY(0, Anim.TRANSLATION_END, SNACK_BAR_ANIM_DURATION, new AnticipateInterpolator(1f));
-            Anim anim = snackBarAnimFadeBuilder(snackbar.getView(), animDefault);
-            if (anim != null) {
-                anim.setEndListener(new QeUtil.Do.WithIt<Anim>() {
+            AnimView<View> animDefault = AnimView.animate(snackbar.getView());
+            animDefault
+                    .translationY(0f, snackbar.getView().getHeight() * 2f, new OtherParams() {
+                        @Override
+                        public long getDuration() {
+                            return SNACK_BAR_ANIM_DURATION;
+                        }
+
+                        @Override
+                        public Interpolator getInterpolator() {
+                            return new AnticipateInterpolator(0.8f);
+                        }
+                    })
+                    .alpha(1f, 0f, SNACK_BAR_ANIM_DURATION);
+
+            animDefault = snackBarAnimFadeBuilder(snackbar.getView(), animDefault);
+            if (animDefault != null) {
+                animDefault.getOnEnd().addSub(new Subscriber.TwoParam<Anim<View>, Animator>() {
                     @Override
-                    public void doWithIt(Anim it) {
+                    public void doIt(Anim<View> first, Animator second) {
                         snackbar.dismiss();
+                        snackbar.getView().setVisibility(GONE);
                     }
                 });
-                anim.start();
+                animDefault.start();
             }
         }
     }
     private void animateSnackBarStart(final Snackbar snackbar) {
-        Anim animDefault = Anim.animate(snackbar.getView()).translationY(Anim.TRANSLATION_END, 0, SNACK_BAR_ANIM_DURATION, new OvershootInterpolator(0.8f));
-        Anim anim = snackBarAnimShowBuilder(snackbar.getView(), animDefault);
-        if (anim != null) {
-            anim.start();
-        }
+        AnimView<View> animDefault = AnimView.animate(snackbar.getView());
+        animDefault
+                .translationY(snackbar.getView().getHeight() * 2f, 0f, new OtherParams() {
+            @Override
+            public long getDuration() {
+                return SNACK_BAR_ANIM_DURATION;
+            }
+
+            @Override
+            public Interpolator getInterpolator() {
+                return new OvershootInterpolator(0.8f);
+            }
+        })
+                .alpha(0f, 1f, SNACK_BAR_ANIM_DURATION);
+
+        animDefault = snackBarAnimShowBuilder(snackbar.getView(), animDefault);
+        if (animDefault != null) animDefault.start();
     }
 
     public static abstract class Construction {

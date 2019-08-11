@@ -6,9 +6,14 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.OvershootInterpolator;
 
-import com.qegame.animsimple.Anim;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.qegame.animsimple.anim.Anim;
+import com.qegame.animsimple.anim.MoveLeft;
+import com.qegame.animsimple.params.OtherParams;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
+import com.qegame.qeutil.QeUtil;
 import com.qegame.qeutil.listener.Subscriber;
 
 import java.util.Random;
@@ -22,6 +27,19 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        View view = findViewById(R.id.view);
+
+        QeUtil.doOnMeasureView(view, new QeUtil.Do.WithIt<View>() {
+            @Override
+            public void doWithIt(View it) {
+                MoveLeft<View> anim = new MoveLeft<>(view, new OtherParams.Smart(1000L, new OvershootInterpolator()));
+                anim.start();
+
+            }
+        });
+
+
         bottomAppBarQe = findViewById(R.id.bar);
         bottomAppBarQe.setConstruction(getFabCenter());
         bottomAppBarQe.setSnackBarCorners(BottomAppBarQe.Corner.CUT, 10);
@@ -34,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public BottomAppBarQe.Construction.FABCenter getFabCenter() {
+
         BottomAppBarQe.FABSettings fab = new BottomAppBarQe.FABSettings() {
             @Override
             public Drawable getImage() {
@@ -45,16 +64,12 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        bottomAppBarQe.addProgressPercent(20);
+                        bottomAppBarQe.setConstruction(getFabEnd());
                     }
                 };
             }
-
-            @Override
-            public Anim getAnimation(Anim animDefault) {
-                return animDefault;
-            }
         };
+
         BottomAppBarQe.IconSettings icon_0 = new BottomAppBarQe.IconSettings() {
             @Override
             public Drawable getImage() {
@@ -82,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        bottomAppBarQe.removeProgressBar();
+                        bottomAppBarQe.addProgressPercent(10);
                     }
                 };
             }
@@ -150,12 +165,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 };
             }
-
-            @Override
-            public Anim getAnimation(Anim animDefault) {
-                return animDefault;
-            }
         };
+
         BottomAppBarQe.IconSettings icon_0 = new BottomAppBarQe.IconSettings() {
             @Override
             public Drawable getImage() {
