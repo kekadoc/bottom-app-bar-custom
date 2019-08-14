@@ -537,7 +537,7 @@ public class BottomAppBarQe extends LinearLayout {
 
     /** Построение ProgressBar */
     private void buildProgressBar() {
-        inflate(getContext(), R.layout.progress_bar_fab, (ViewGroup) findViewById(R.id.coordinator));
+        inflate(getContext(), R.layout.progress_bar_fab, findViewById(R.id.coordinator));
         progressBar = (ProgressBar) coordinatorLayout.getChildAt(coordinatorLayout.getChildCount() - 1);
         progressBar.setX(fab.getX());
         progressBar.setY(fab.getY());
