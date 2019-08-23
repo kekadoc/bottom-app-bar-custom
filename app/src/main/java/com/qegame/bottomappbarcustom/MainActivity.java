@@ -10,8 +10,9 @@ import android.view.animation.OvershootInterpolator;
 import com.qegame.animsimple.anim.MoveLeft;
 import com.qegame.animsimple.path.params.OtherParams;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
-import com.qegame.qeutil.QeUtil;
-import com.qegame.qeutil.listener.Subscriber;
+import com.qegame.qeutil.androids.QeViews;
+import com.qegame.qeutil.doing.Do;
+import com.qegame.qeutil.listening.subscriber.Subscriber;
 
 import java.util.Random;
 
@@ -27,12 +28,11 @@ public class MainActivity extends AppCompatActivity {
 
         View view = findViewById(R.id.view);
 
-        QeUtil.doOnMeasureView(view, new QeUtil.Do.WithIt<View>() {
+        QeViews.doOnMeasureView(view, new Do.With<View>() {
             @Override
-            public void doWithIt(View it) {
+            public void work(View with) {
                 MoveLeft<View> anim = new MoveLeft<>(view, new OtherParams.Smart(1000L, new OvershootInterpolator()));
                 anim.start();
-
             }
         });
 
@@ -40,9 +40,9 @@ public class MainActivity extends AppCompatActivity {
         bottomAppBarQe = findViewById(R.id.bar);
         bottomAppBarQe.setConstruction(getFabCenter());
         bottomAppBarQe.setSnackBarCorners(BottomAppBarQe.Corner.CUT, 10);
-        bottomAppBarQe.getOnProgressCompletely().addSub(new Subscriber.Simple() {
+        bottomAppBarQe.getOnProgressCompletely().subscribe(new Subscriber() {
             @Override
-            public void doIt() {
+            public void onCall() {
                 bottomAppBarQe.showSnackBar("Complete!");
             }
         });

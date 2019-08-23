@@ -1,19 +1,15 @@
 package com.qegame.bottomappbarqe;
 
 import android.animation.Animator;
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.AnticipateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
@@ -43,14 +39,17 @@ import com.qegame.animsimple.anim.MoveRight;
 import com.qegame.animsimple.path.Alpha;
 import com.qegame.animsimple.path.ScaleX;
 import com.qegame.animsimple.path.ScaleY;
+import com.qegame.animsimple.path.TranslationY;
 import com.qegame.animsimple.path.params.AnimParams;
 import com.qegame.animsimple.path.params.OtherParams;
 import com.qegame.animsimple.path.params.SimpleParams;
 import com.qegame.animsimple.viewsanimations.ProgressBarAnimation;
 import com.qegame.qeshaper.QeShaper;
-import com.qegame.qeutil.listener.Listener;
-import com.qegame.qeutil.QeUtil;
-import com.qegame.qeutil.listener.Subscriber;
+import com.qegame.qeutil.androids.QeAndroid;
+import com.qegame.qeutil.androids.QeViews;
+import com.qegame.qeutil.doing.Do;
+import com.qegame.qeutil.listening.listener.Listener;
+import com.qegame.qeutil.listening.subscriber.Subscriber;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -106,7 +105,7 @@ public class BottomAppBarQe extends LinearLayout {
     private Corner corners;
     private int radius;
 
-    private Listener.Simple onProgressCompletely;
+    private Listener onProgressCompletely;
 
     public BottomAppBarQe(Context context) {
         super(context);
@@ -199,9 +198,9 @@ public class BottomAppBarQe extends LinearLayout {
         setColorPanel(colorPrimary);
         getFab().setBackgroundTintList(ColorStateList.valueOf(colorAccent));
 
-        setSnackBarCorners(Corner.ROUND, (int) QeUtil.dp(context, 3));
+        setSnackBarCorners(Corner.ROUND, (int) QeAndroid.dp(context, 3));
 
-        this.onProgressCompletely = new Listener.Simple();
+        this.onProgressCompletely = new Listener();
     }
 
     //region Getters/Setters
@@ -243,7 +242,7 @@ public class BottomAppBarQe extends LinearLayout {
         return progressBarShown;
     }
 
-    public Listener.Simple getOnProgressCompletely() {
+    public Listener getOnProgressCompletely() {
         return onProgressCompletely;
     }
 
@@ -323,9 +322,9 @@ public class BottomAppBarQe extends LinearLayout {
 
         snackbar.show();
 
-        QeUtil.doOnMeasureView(snackbar.getView(), new QeUtil.Do.WithIt<View>() {
+        QeViews.doOnMeasureView(snackbar.getView(), new Do.With<View>() {
             @Override
-            public void doWithIt(View it) {
+            public void work(View with) {
                 animateSnackBarStart(snackbar);
             }
         });
@@ -353,9 +352,9 @@ public class BottomAppBarQe extends LinearLayout {
             refreshProgressBar(this.progressBar.getProgress());
         } else {
             if (fab.getWidth() == 0) {
-                QeUtil.doOnMeasureView(this.fab, new QeUtil.Do.WithIt<View>() {
+                QeViews.doOnMeasureView(this.fab, new Do.With<FloatingActionButton>() {
                     @Override
-                    public void doWithIt(View it) {
+                    public void work(FloatingActionButton with) {
                         buildProgressBar();
                     }
                 });
@@ -372,10 +371,11 @@ public class BottomAppBarQe extends LinearLayout {
             anim
                     .play(new Alpha<>(new AnimParams.OfFloat<>(1f, 0f, Durations.DURATION_VERY_VERY_SHORT)))
                     .with(new ScaleX<>(new AnimParams.OfFloat<>(1f, 1.5f, Durations.DURATION_VERY_VERY_SHORT)))
-                    .with(new ScaleX<>(new AnimParams.OfFloat<>(1f, 1.5f, Durations.DURATION_VERY_VERY_SHORT)));
-            anim.getOnEnd().addSub(new Subscriber.TwoParam<Anim<ProgressBar>, Animator>() {
+                    .with(new ScaleX<>(new AnimParams.OfFloat<>(1f, 1.5f, Durations.DURATION_VERY_VERY_SHORT)))
+                    .build();
+            anim.getOnEnd().subscribe(new Subscriber.Twins<Anim<ProgressBar>, Animator>() {
                 @Override
-                public void doIt(Anim<ProgressBar> first, Animator second) {
+                public void onCall(Anim<ProgressBar> first, Animator second) {
                     if (progressBar != null) {
                         progressBar.setProgress(0);
                         coordinatorLayout.removeView(progressBar);
@@ -402,18 +402,19 @@ public class BottomAppBarQe extends LinearLayout {
     /** Изменить уровень прогресса */
     public void setProgress(@IntRange(from = 0, to = MAX_PB) int value) {
         if (progressBar != null) {
-            ProgressBarAnimation anim = ProgressBarAnimation.animateProgress(progressBar, new SimpleParams.OfInt(progressBar.getProgress(), value));
+            ProgressBarAnimation anim = ProgressBarAnimation.animateProgress(progressBar, progressBar.getProgress(), value, 1000L);
             anim.start();
 
-            if (value >= MAX_PB) anim.getOnEnd().addSub(new Subscriber.TwoParam<Anim<ProgressBar>, Animator>() {
-                @Override
-                public void doIt(Anim<ProgressBar> first, Animator second) {
-                    getOnProgressCompletely().doIt();
-                }
-            });
-        } else {
+            if (value >= MAX_PB)
+                anim.getOnEnd().subscribe(new Subscriber.Twins<Anim<ProgressBar>, Animator>() {
+                    @Override
+                    public void onCall(Anim<ProgressBar> first, Animator second) {
+                        getOnProgressCompletely().call();
+                    }
+                });
+        } else
             this.defProgress = value;
-        }
+
     }
     /** Добавить уровень прогресса */
     public void addProgress(int value) {
@@ -482,7 +483,6 @@ public class BottomAppBarQe extends LinearLayout {
 
     /** Построенеи View у SnackBar */
     protected View snackBarViewBuilder(@NonNull final Snackbar snackbar, @NonNull View view) {
-        QeUtil.Density d = new QeUtil.Density(getContext());
         @ColorInt int color = 0xFF323232;
         int marginSide = (int) getResources().getDimension(R.dimen.margin_side_snackbar);
         view.setElevation(getResources().getDimension(R.dimen.elevation_snack));
@@ -507,21 +507,21 @@ public class BottomAppBarQe extends LinearLayout {
         button.setTextColor(colorAccent);
         button.setVisibility(VISIBLE);
 
-        Drawable background = QeShaper.buildDrawable(new CutCornerTreatment(d.dp(5)), new QeShaper.Corner[]{}, color, 0, colorPrimary);
+        Drawable background = QeShaper.buildDrawable(new CutCornerTreatment(dp(5)), new QeShaper.Corner[]{}, color, 0, colorPrimary);
         button.setBackground(background);
 
         button.setPadding(0, 0, 0, 0);
 
         LinearLayout.LayoutParams lp = (LayoutParams) button.getLayoutParams();
-        lp.height = d.dp(36);
-        lp.setMargins(d.dp(8),d.dp(6), d.dp(8), d.dp(6));
+        lp.height = dp(36);
+        lp.setMargins(dp(8), dp(6), dp(8), dp(6));
 
         if (this.corners == Corner.CUT) {
-            view.setBackground(QeShaper.getCutCorners(d.dp(radius), color, colorAccent));
-            button.setBackground(QeShaper.getCutCorners(d.dp(radius), color, colorPrimary));
+            view.setBackground(QeShaper.getCutCorners(dp(radius), color, colorAccent));
+            button.setBackground(QeShaper.getCutCorners(dp(radius), color, colorPrimary));
         } else {
-            view.setBackground(QeShaper.getRoundCorners(d.dp(radius), color, colorAccent));
-            button.setBackground(QeShaper.getRoundCorners(d.dp(radius), color, colorPrimary));
+            view.setBackground(QeShaper.getRoundCorners(dp(radius), color, colorAccent));
+            button.setBackground(QeShaper.getRoundCorners(dp(radius), color, colorPrimary));
         }
 
         return view;
@@ -575,8 +575,8 @@ public class BottomAppBarQe extends LinearLayout {
     private void animateSnackBarFade(final Snackbar snackbar) {
         if (snackbar.isShown()) {
             AnimView<View> animDefault = AnimView.animate(snackbar.getView());
-            animDefault
-                    .translationY(0f, snackbar.getView().getHeight() * 2f, new OtherParams() {
+            animDefault.playTogether(
+                    TranslationY.animate(new AnimParams.OfFloat<>(0f, snackbar.getView().getHeight() * 2f, new OtherParams() {
                         @Override
                         public long getDuration() {
                             return SNACK_BAR_ANIM_DURATION;
@@ -584,16 +584,17 @@ public class BottomAppBarQe extends LinearLayout {
 
                         @Override
                         public Interpolator getInterpolator() {
-                            return new AnticipateInterpolator(0.8f);
+                            return new OvershootInterpolator(0.8f);
                         }
-                    })
-                    .alpha(1f, 0f, SNACK_BAR_ANIM_DURATION);
+                    })),
+                    Alpha.animate(new AnimParams.OfFloat<>(1f, 0f, SNACK_BAR_ANIM_DURATION))
+            );
 
             animDefault = snackBarAnimFadeBuilder(snackbar.getView(), animDefault);
             if (animDefault != null) {
-                animDefault.getOnEnd().addSub(new Subscriber.TwoParam<Anim<View>, Animator>() {
+                animDefault.getOnEnd().subscribe(new Subscriber.Twins<Anim<View>, Animator>() {
                     @Override
-                    public void doIt(Anim<View> first, Animator second) {
+                    public void onCall(Anim<View> first, Animator second) {
                         snackbar.dismiss();
                         snackbar.getView().setVisibility(GONE);
                     }
@@ -604,22 +605,27 @@ public class BottomAppBarQe extends LinearLayout {
     }
     private void animateSnackBarStart(final Snackbar snackbar) {
         AnimView<View> animDefault = AnimView.animate(snackbar.getView());
-        animDefault
-                .translationY(snackbar.getView().getHeight() * 2f, 0f, new OtherParams() {
-            @Override
-            public long getDuration() {
-                return SNACK_BAR_ANIM_DURATION;
-            }
+        animDefault.playTogether(
+                TranslationY.animate(new AnimParams.OfFloat<>(snackbar.getView().getHeight() * 2f, 0f, new OtherParams() {
+                    @Override
+                    public long getDuration() {
+                        return SNACK_BAR_ANIM_DURATION;
+                    }
 
-            @Override
-            public Interpolator getInterpolator() {
-                return new OvershootInterpolator(0.8f);
-            }
-        })
-                .alpha(0f, 1f, SNACK_BAR_ANIM_DURATION);
+                    @Override
+                    public Interpolator getInterpolator() {
+                        return new OvershootInterpolator(0.8f);
+                    }
+                })),
+                Alpha.animate(new AnimParams.OfFloat<>(0f, 1f, SNACK_BAR_ANIM_DURATION))
+        );
 
         animDefault = snackBarAnimShowBuilder(snackbar.getView(), animDefault);
         if (animDefault != null) animDefault.start();
+    }
+
+    private int dp(int dp) {
+        return (int) QeAndroid.dp(getContext(), dp);
     }
 
     public static abstract class Construction {
