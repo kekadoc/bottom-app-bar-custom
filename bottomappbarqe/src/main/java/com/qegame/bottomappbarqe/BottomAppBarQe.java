@@ -10,7 +10,6 @@ import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
-import android.view.animation.AnticipateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.LinearLayout;
@@ -42,7 +41,6 @@ import com.qegame.animsimple.path.ScaleY;
 import com.qegame.animsimple.path.TranslationY;
 import com.qegame.animsimple.path.params.AnimParams;
 import com.qegame.animsimple.path.params.OtherParams;
-import com.qegame.animsimple.path.params.SimpleParams;
 import com.qegame.animsimple.viewsanimations.ProgressBarAnimation;
 import com.qegame.qeshaper.QeShaper;
 import com.qegame.qeutil.androids.QeAndroid;
@@ -65,9 +63,10 @@ public class BottomAppBarQe extends LinearLayout {
 
     /** Максимальное значение прогресса у ProgressBar */
     private static final int MAX_PB = 360;
-    private static final long SNACK_BAR_ANIM_DURATION = 500;
-    private static final long DURATION_SNACK_DEFAULT = 2500;
-    private static final long DURATION_ICONS = 800;
+    private static final long DURATION_SNACK_SHOW = 500L;
+    private static final long DURATION_SNACK_DEFAULT = 2500L;
+    private static final long DURATION_ICONS = 800L;
+    private static final long DURATION_SET_FAB = 300L;
 
     public interface FABSettings {
         Drawable getImage();
@@ -211,43 +210,13 @@ public class BottomAppBarQe extends LinearLayout {
     public void setFabSettings(FABSettings fabSettings) {
         setFabSettings(fabSettings, true);
     }
-    private void setFabSettings(FABSettings fabSettings, boolean animate) {
-        this.fabSettings = fabSettings;
-        if (fabSettings != null) {
-
-            getFab().setImageDrawable(fabSettings.getImage());
-
-            if (animate) {
-                Anim<FloatingActionButton> anim_default = Anim.animate(fab);
-                anim_default
-                        .play(new ScaleX<>(new AnimParams.OfFloat<>(0f, 1f, 1000)))
-                        .with(new ScaleY<>(new AnimParams.OfFloat<>(0f, 1f, 1000)))
-                        .build();
-
-                Anim anim = fabSettings.getAnimation(anim_default);
-                if (anim != null) anim.start();
-            }
-
-            if (fabSettings.getClickListener() == null) {
-                getFab().setEnabled(false);
-                getFab().setClickable(false);
-            } else {
-                getFab().setEnabled(true);
-                getFab().setClickable(true);
-            }
-        }
-        removeProgressBar();
-    }
 
     public boolean isProgressBarShown() {
         return progressBarShown;
     }
-
     public Listener getOnProgressCompletely() {
         return onProgressCompletely;
     }
-
-    //endregion
 
     @NonNull
     public FloatingActionButton getFab() {
@@ -257,6 +226,8 @@ public class BottomAppBarQe extends LinearLayout {
     public BottomAppBar getBottomAppBar() {
         return bottomAppBar;
     }
+    //endregion
+
     /** Сменить конструкцию */
     public void setConstruction(@NonNull Construction construction) {
         this.construction = construction;
@@ -536,6 +507,33 @@ public class BottomAppBarQe extends LinearLayout {
         return animDefault;
     }
 
+    private void setFabSettings(FABSettings fabSettings, boolean animate) {
+        this.fabSettings = fabSettings;
+        if (fabSettings != null) {
+
+            getFab().setImageDrawable(fabSettings.getImage());
+
+            if (animate) {
+                Anim<FloatingActionButton> anim_default = Anim.animate(fab);
+                anim_default
+                        .play(new ScaleX<>(new AnimParams.OfFloat<>(0f, 1f, DURATION_SET_FAB, new OvershootInterpolator())))
+                        .with(new ScaleY<>(new AnimParams.OfFloat<>(0f, 1f, DURATION_SET_FAB, new OvershootInterpolator())))
+                        .build();
+
+                Anim anim = fabSettings.getAnimation(anim_default);
+                if (anim != null) anim.start();
+            }
+
+            if (fabSettings.getClickListener() == null) {
+                getFab().setEnabled(false);
+                getFab().setClickable(false);
+            } else {
+                getFab().setEnabled(true);
+                getFab().setClickable(true);
+            }
+        }
+        removeProgressBar();
+    }
     /** Построение ProgressBar */
     private void buildProgressBar() {
         inflate(getContext(), R.layout.progress_bar_fab, findViewById(R.id.coordinator));
@@ -580,7 +578,7 @@ public class BottomAppBarQe extends LinearLayout {
                     TranslationY.animate(new AnimParams.OfFloat<>(0f, snackbar.getView().getHeight() * 2f, new OtherParams() {
                         @Override
                         public long getDuration() {
-                            return SNACK_BAR_ANIM_DURATION;
+                            return DURATION_SNACK_SHOW;
                         }
 
                         @Override
@@ -588,7 +586,7 @@ public class BottomAppBarQe extends LinearLayout {
                             return new OvershootInterpolator(0.8f);
                         }
                     })),
-                    Alpha.animate(new AnimParams.OfFloat<>(1f, 0f, SNACK_BAR_ANIM_DURATION))
+                    Alpha.animate(new AnimParams.OfFloat<>(1f, 0f, DURATION_SNACK_SHOW))
             );
 
             animDefault = snackBarAnimFadeBuilder(snackbar.getView(), animDefault);
@@ -610,7 +608,7 @@ public class BottomAppBarQe extends LinearLayout {
                 TranslationY.animate(new AnimParams.OfFloat<>(snackbar.getView().getHeight() * 2f, 0f, new OtherParams() {
                     @Override
                     public long getDuration() {
-                        return SNACK_BAR_ANIM_DURATION;
+                        return DURATION_SNACK_SHOW;
                     }
 
                     @Override
@@ -618,7 +616,7 @@ public class BottomAppBarQe extends LinearLayout {
                         return new OvershootInterpolator(0.8f);
                     }
                 })),
-                Alpha.animate(new AnimParams.OfFloat<>(0f, 1f, SNACK_BAR_ANIM_DURATION))
+                Alpha.animate(new AnimParams.OfFloat<>(0f, 1f, DURATION_SNACK_SHOW))
         );
 
         animDefault = snackBarAnimShowBuilder(snackbar.getView(), animDefault);
