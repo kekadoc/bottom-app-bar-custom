@@ -221,7 +221,8 @@ public class BottomAppBarQe extends LinearLayout {
                 Anim<FloatingActionButton> anim_default = Anim.animate(fab);
                 anim_default
                         .play(new ScaleX<>(new AnimParams.OfFloat<>(0f, 1f, 1000)))
-                        .with(new ScaleY<>(new AnimParams.OfFloat<>(0f, 1f, 1000)));
+                        .with(new ScaleY<>(new AnimParams.OfFloat<>(0f, 1f, 1000)))
+                        .build();
 
                 Anim anim = fabSettings.getAnimation(anim_default);
                 if (anim != null) anim.start();
