@@ -28,6 +28,7 @@ import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.shape.CutCornerTreatment;
+import com.google.android.material.shape.RoundedCornerTreatment;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.snackbar.SnackbarContentLayout;
 import com.qegame.animsimple.Durations;
@@ -479,7 +480,7 @@ public class BottomAppBarQe extends LinearLayout {
         button.setTextColor(colorAccent);
         button.setVisibility(VISIBLE);
 
-        Drawable background = QeShaper.buildDrawable(new CutCornerTreatment(dp(5)), new QeShaper.Corner[]{}, color, 0, colorPrimary);
+        Drawable background = QeShaper.builder().allCorner(new CutCornerTreatment(dp(5))).color(color).rippleColor(colorPrimary).build();
         button.setBackground(background);
 
         button.setPadding(0, 0, 0, 0);
@@ -489,11 +490,11 @@ public class BottomAppBarQe extends LinearLayout {
         lp.setMargins(dp(8), dp(6), dp(8), dp(6));
 
         if (this.corners == Corner.CUT) {
-            view.setBackground(QeShaper.getCutCorners(dp(radius), color, colorAccent));
-            button.setBackground(QeShaper.getCutCorners(dp(radius), color, colorPrimary));
+            view.setBackground(QeShaper.builder().allCorner(new CutCornerTreatment(dp(radius))).color(color).rippleColor(colorAccent).build());
+            button.setBackground(QeShaper.builder().allCorner(new CutCornerTreatment(dp(radius))).color(color).rippleColor(colorPrimary).build());
         } else {
-            view.setBackground(QeShaper.getRoundCorners(dp(radius), color, colorAccent));
-            button.setBackground(QeShaper.getRoundCorners(dp(radius), color, colorPrimary));
+            view.setBackground(QeShaper.builder().allCorner(new RoundedCornerTreatment(dp(radius))).color(color).rippleColor(colorAccent).build());
+            button.setBackground(QeShaper.builder().allCorner(new RoundedCornerTreatment(dp(radius))).color(color).rippleColor(colorPrimary).build());
         }
 
         return view;
