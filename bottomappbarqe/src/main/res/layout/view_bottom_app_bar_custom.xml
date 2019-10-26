@@ -15,7 +15,8 @@
             style="@style/Widget.MaterialComponents.FloatingActionButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_anchor="@id/bab" />
+            app:layout_anchor="@id/bab"
+            app:tint="@null"/>
 
         <com.google.android.material.bottomappbar.BottomAppBar
             android:id="@+id/bab"

@@ -12,6 +12,7 @@ import com.qegame.animsimple.path.params.OtherParams;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
 import com.qegame.qeutil.androids.QeViews;
 import com.qegame.qeutil.doing.Do;
+import com.qegame.qeutil.graph.QeColor;
 import com.qegame.qeutil.listening.subscriber.Subscriber;
 
 import java.util.Random;
@@ -26,24 +27,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        View view = findViewById(R.id.view);
-
-        QeViews.doOnMeasureView(view, new Do.With<View>() {
-            @Override
-            public void work(View with) {
-                MoveLeft<View> anim = new MoveLeft<>(view, new OtherParams.Smart(1000L, new OvershootInterpolator()));
-                anim.start();
-            }
-        });
-
-
         bottomAppBarQe = findViewById(R.id.bar);
         bottomAppBarQe.setConstruction(getFabCenter());
-        bottomAppBarQe.setSnackBarCorners(BottomAppBarQe.Corner.CUT, 10);
-        bottomAppBarQe.getOnProgressCompletely().subscribe(new Subscriber() {
+        bottomAppBarQe.snack().setCorners(BottomAppBarQe.Snack.Corner.CUT, 10);
+        bottomAppBarQe.progress().onCompletely().subscribe(new Subscriber() {
             @Override
             public void onCall() {
-                bottomAppBarQe.showSnackBar("Complete!");
+                bottomAppBarQe.snack().show("Complete!");
             }
         });
     }
@@ -53,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         BottomAppBarQe.FABSettings fab = new BottomAppBarQe.FABSettings() {
             @Override
             public Drawable getImage() {
-                return null;
+                return getResources().getDrawable(R.drawable.help);
             }
 
             @Override
@@ -78,7 +68,8 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        bottomAppBarQe.showProgressBar();
+                        if (bottomAppBarQe.progress().isShown()) bottomAppBarQe.progress().remove(true);
+                        else bottomAppBarQe.progress().show();
                     }
                 };
             }
@@ -94,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        bottomAppBarQe.addProgressPercent(10);
+                        bottomAppBarQe.progress().add(10);
                     }
                 };
             }
@@ -111,7 +102,23 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        bottomAppBarQe.showSnackBar("This is SnackBar!", 100000000);
+
+                        bottomAppBarQe.snack().show("This is SnackBar!", 100000000);
+                        /*bottomAppBarQe.snack().make("This is SnackBar!")
+                                .buttonColorBody(Color.RED)
+                                .buttonColorRipple(Color.BLUE)
+                                .buttonText("GG")
+                                .onButtonClick(new Do() {
+                                    @Override
+                                    public void work() {
+                                        bottomAppBarQe.snack().show("Snack Close!");
+                                    }
+                                })
+                                .colorBody(Color.MAGENTA)
+                                .colorText(Color.LTGRAY)
+                                .radius(50)
+                                .duration(10000)
+                                .show();*/
                     }
                 };
             }
@@ -127,19 +134,9 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Random random = new Random();
-                        int r = random.nextInt(256);
-                        int g = random.nextInt(256);
-                        int b = random.nextInt(256);
-                        int color = Color.argb(255, r, g ,b);
-                        bottomAppBarQe.setColorPanel(color);
-
-                        int r1 = random.nextInt(256);
-                        int g1 = random.nextInt(256);
-                        int b1 = random.nextInt(256);
-                        int color1 = Color.argb(255, r1, g1 ,b1);
-
-                        bottomAppBarQe.setFabColor(color1);
+                        bottomAppBarQe.setColorPanel(QeColor.getRandomColor());
+                        bottomAppBarQe.setFabColor(QeColor.getRandomColor());
+                        bottomAppBarQe.progress().setColor(QeColor.getRandomColor());
                     }
                 };
             }
