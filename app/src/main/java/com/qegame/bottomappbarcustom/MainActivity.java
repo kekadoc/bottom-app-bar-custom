@@ -6,16 +6,10 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
-import android.view.animation.OvershootInterpolator;
-import com.qegame.animsimple.anim.MoveLeft;
-import com.qegame.animsimple.path.params.OtherParams;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
-import com.qegame.qeutil.androids.QeViews;
-import com.qegame.qeutil.doing.Do;
-import com.qegame.qeutil.graph.QeColor;
+import com.qegame.qeutil.QeUtil;
 import com.qegame.qeutil.listening.subscriber.Subscriber;
 
-import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity-TAG";
@@ -134,9 +128,10 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        bottomAppBarQe.setColorPanel(QeColor.getRandomColor());
-                        bottomAppBarQe.setFabColor(QeColor.getRandomColor());
-                        bottomAppBarQe.progress().setColor(QeColor.getRandomColor());
+
+                        bottomAppBarQe.setColorPanel(getRandomColor());
+                        bottomAppBarQe.setFabColor(getRandomColor());
+                        bottomAppBarQe.progress().setColor(getRandomColor());
                     }
                 };
             }
@@ -206,5 +201,13 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         return new BottomAppBarQe.Construction.FABEnd(fab, icon_0, icon_1, icon_2, icon_3);
+    }
+
+
+    public static int getRandomColor() {
+        return getRandomColor(255);
+    }
+    public static int getRandomColor(int alpha) {
+        return Color.argb(alpha, QeUtil.getRandom().nextInt(256), QeUtil.getRandom().nextInt(256) , QeUtil.getRandom().nextInt(256));
     }
 }

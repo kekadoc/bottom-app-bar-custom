@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
@@ -13,6 +14,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -28,13 +30,11 @@ import androidx.appcompat.widget.AppCompatImageView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.shape.CutCornerTreatment;
 import com.google.android.material.shape.RoundedCornerTreatment;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.snackbar.SnackbarContentLayout;
-import com.qegame.animsimple.Durations;
 import com.qegame.animsimple.anim.Anim;
 import com.qegame.animsimple.anim.AnimView;
 import com.qegame.animsimple.anim.MoveLeft;
@@ -63,16 +63,23 @@ public class BottomAppBarQe extends FrameLayout {
     private static final long DURATION_ICONS = 800L;
     private static final long DURATION_SET_FAB = 300L;
 
+    /** Найстройка FAB */
     public interface FABSettings {
+        /** Изображение */
         Drawable getImage();
+        /** Слушатель на нажатие */
         OnClickListener getClickListener();
+        /** Анимация появления / изменения */
         default Anim<FloatingActionButton> getAnimation(Anim<FloatingActionButton> animDefault) {
             return animDefault;
         }
     }
 
+    /** Настройка иконки. */
     public interface IconSettings {
+        /** Изображение */
         Drawable getImage();
+        /** Слушатель на нажатие */
         OnClickListener getClickListener();
     }
 
@@ -87,19 +94,23 @@ public class BottomAppBarQe extends FrameLayout {
     private LinearLayout icons_right;
     private AppCompatImageView[] images_right;
 
+    /** Текщие настройки FAB */
     private FABSettings fabSettings;
+    /** Primary цвет темы */
+    @ColorInt private int colorPrimary;
+    /** Accent цвет темы */
+    @ColorInt private int colorAccent;
 
-    private int colorPrimary;
-    private int colorAccent;
+    /** Цвет FAB */
+    @ColorInt private int colorFAB;
+    /** Цвет всей панели */
+    @ColorInt private int colorPanel;
 
-    private int colorFAB;
-    private int colorPanel;
-
-    @NonNull
+    /** Текущая конструкция */
     private Construction construction;
-    @NonNull
+    /** Управление ProgressBar */
     private Progress progress;
-    @NonNull
+    /** Управление SnackBar */
     private Snack snack;
 
     public BottomAppBarQe(Context context) {
@@ -202,41 +213,45 @@ public class BottomAppBarQe extends FrameLayout {
 
     //region Getters/Setters
 
-    public FABSettings getFabSettings() {
+    public final FABSettings getFabSettings() {
         return fabSettings;
     }
-    public void setFabSettings(FABSettings fabSettings) {
+    public final void setFabSettings(@NonNull FABSettings fabSettings) {
+        if (fabSettings == null) throw new RuntimeException("FabSettings is null!");
         setFabSettings(fabSettings, true);
     }
 
     @NonNull
-    public FloatingActionButton getFab() {
+    public final FloatingActionButton getFab() {
         return fab;
     }
     @NonNull
-    public BottomAppBar getBottomAppBar() {
+    public final BottomAppBar getBottomAppBar() {
         return bottomAppBar;
     }
 
-    public void setColorFAB(int colorFAB) {
+    public final void setColorFAB(int colorFAB) {
         this.colorFAB = colorFAB;
     }
 
-    public void setProgress(@NonNull Progress progress) {
+    public final void setProgress(@NonNull Progress progress) {
         this.progress = progress;
     }
 
-    public void setSnack(@NonNull Snack snack) {
+    public final void setSnack(@NonNull Snack snack) {
         this.snack = snack;
     }
 
     //endregion
+
+    /** Управление SnackBar */
     @NonNull
-    public Snack snack() {
+    public final Snack snack() {
         return snack;
     }
+    /** Управление ProgressView */
     @NonNull
-    public Progress progress() {
+    public final Progress progress() {
         return progress;
     }
 
@@ -255,7 +270,7 @@ public class BottomAppBarQe extends FrameLayout {
                 images_all_left[i].setOnClickListener(iconSettings.getClickListener());
             }
 
-            MoveLeft.animate(icons_all_left, new OtherParams.Smart(DURATION_ICONS, new OvershootInterpolator())).start();
+            MoveLeft.animate(icons_all_left, new OtherParams.Smart(getDurationIconsShow(), new OvershootInterpolator())).start();
         }
 
         if (construction instanceof Construction.FABCenter) {
@@ -279,13 +294,13 @@ public class BottomAppBarQe extends FrameLayout {
                 }
             }
 
-            MoveLeft.animate(icons_left, new OtherParams.Smart(DURATION_ICONS, new OvershootInterpolator())).start();
-            MoveRight.animate(icons_right, new OtherParams.Smart(DURATION_ICONS, new OvershootInterpolator())).start();
+            MoveLeft.animate(icons_left, new OtherParams.Smart(getDurationIconsShow(), new OvershootInterpolator())).start();
+            MoveRight.animate(icons_right, new OtherParams.Smart(getDurationIconsShow(), new OvershootInterpolator())).start();
         }
     }
 
     /** Изменить цвет панели */
-    public void setColorPanel(@ColorInt int color) {
+    public final void setColorPanel(@ColorInt int color) {
         this.colorPanel = color;
         this.bottomAppBar.setBackgroundTint(ColorStateList.valueOf(color));
         this.icons_all_left.setBackgroundColor(color);
@@ -293,13 +308,13 @@ public class BottomAppBarQe extends FrameLayout {
         this.icons_right.setBackgroundColor(color);
     }
     /** Изменить цвет FAB */
-    public void setFabColor(@ColorInt int color) {
+    public final void setFabColor(@ColorInt int color) {
         this.colorFAB = color;
         refreshFabColor();
     }
     /** Программный клик по иконке на панели
      * @param position Позиция иконки относительно левого края */
-    public void performClickIcon(int position) {
+    public final void performClickIcon(int position) {
         if (this.construction instanceof Construction.FABEnd) {
             if (icons_all_left.getChildCount() > position) 
                 if (icons_all_left.getChildAt(position).getVisibility() == VISIBLE) 
@@ -321,32 +336,44 @@ public class BottomAppBarQe extends FrameLayout {
         }
     }
 
+    /** Длительность анимации появления иконок */
+    protected long getDurationIconsShow() {
+        return DURATION_ICONS;
+    }
+    /** Длительность анимации появления FAB */
+    protected long getDurationFABAnimation() {
+        return DURATION_SET_FAB;
+    }
     /**  */
-    private void setFabSettings(FABSettings fabSettings, boolean animate) {
+    protected int dp(int dp) {
+        return (int) QeAndroid.dp(getContext(), dp);
+    }
+
+    /**  */
+    private void setFabSettings(@NonNull FABSettings fabSettings, boolean animate) {
         this.fabSettings = fabSettings;
-        if (fabSettings != null) {
 
-            getFab().setImageDrawable(fabSettings.getImage());
+        getFab().setImageDrawable(fabSettings.getImage());
 
-            if (animate) {
-                Anim<FloatingActionButton> anim_default = Anim.animate(fab);
-                anim_default
-                        .play(new ScaleX<>(new AnimParams.OfFloat<>(0f, 1f, DURATION_SET_FAB, new OvershootInterpolator())))
-                        .with(new ScaleY<>(new AnimParams.OfFloat<>(0f, 1f, DURATION_SET_FAB, new OvershootInterpolator())))
-                        .build();
+        if (animate) {
+            Anim<FloatingActionButton> anim_default = Anim.animate(fab);
+            anim_default
+                    .play(new ScaleX<>(new AnimParams.OfFloat<>(0f, 1f, getDurationFABAnimation(), new OvershootInterpolator())))
+                    .with(new ScaleY<>(new AnimParams.OfFloat<>(0f, 1f, getDurationFABAnimation(), new OvershootInterpolator())))
+                    .build();
 
-                Anim anim = fabSettings.getAnimation(anim_default);
-                if (anim != null) anim.start();
-            }
-
-            if (fabSettings.getClickListener() == null) {
-                getFab().setEnabled(false);
-                getFab().setClickable(false);
-            } else {
-                getFab().setEnabled(true);
-                getFab().setClickable(true);
-            }
+            Anim anim = fabSettings.getAnimation(anim_default);
+            if (anim != null) anim.start();
         }
+
+        if (fabSettings.getClickListener() == null) {
+            getFab().setEnabled(false);
+            getFab().setClickable(false);
+        } else {
+            getFab().setEnabled(true);
+            getFab().setClickable(true);
+        }
+
         this.progress.remove();
     }
     /**  */
@@ -370,10 +397,7 @@ public class BottomAppBarQe extends FrameLayout {
             anImages.setVisibility(GONE);
 
     }
-    /**  */
-    private int dp(int dp) {
-        return (int) QeAndroid.dp(getContext(), dp);
-    }
+    /** Обновить цвет FAB */
     private void refreshFabColor() {
         getFab().setBackgroundTintList(ColorStateList.valueOf(colorFAB));
     }
@@ -383,8 +407,12 @@ public class BottomAppBarQe extends FrameLayout {
 
         /** Максимальное значение прогресса у ProgressBar */
         private static final int MAX_PB = 360;
-        /** Процент от MAX_PB */
-        private static final float ONE_PERCENT = MAX_PB / 100.0f;
+        /** Продолжительность анимации изменения прогресса */
+        private static final long DURATION_PROGRESS_ANIMATION = 1000L;
+        /** Продолжительность анимации изменения прогресса */
+        private static final long DURATION_PROGRESS_SHOW = 300L;
+        /** Продолжительность анимации изменения прогресса */
+        private static final long DURATION_PROGRESS_LEAVE = 300L;
 
         /** Цвет прогресса */
         @ColorInt
@@ -407,28 +435,28 @@ public class BottomAppBarQe extends FrameLayout {
             this.onProgressCompletely = new Listener();
         }
 
-        public boolean isShown() {
+        public final boolean isShown() {
             return shown;
         }
         @NonNull
-        public Listener onCompletely() {
+        public final Listener onCompletely() {
             return onProgressCompletely;
         }
 
         /** Показать прогресс */
-        public void show() {
+        public final void show() {
             show(0, false);
         }
         /** Показать прогресс */
-        public void show(int progressPercent) {
+        public final void show(int progressPercent) {
             show(progressPercent, false);
         }
         /** Показать прогресс */
-        public void show(boolean animation) {
+        public final void show(boolean animation) {
             show(0, animation);
         }
         /** Показать прогресс */
-        public void show(int progressPercent, boolean animation) {
+        public final void show(int progressPercent, boolean animation) {
             //Если он уже существует то просто обновляется
             if (this.progressBar != null) {
                 refresh(this.progressBar.getProgress());
@@ -438,11 +466,11 @@ public class BottomAppBarQe extends FrameLayout {
                     QeViews.doOnMeasureView(bottomAppBarQe.fab, new Do.With<FloatingActionButton>() {
                         @Override
                         public void work(FloatingActionButton with) {
-                            buildProgressBar((int) (progressPercent * ONE_PERCENT), animation);
+                            buildProgressBar((int) (progressPercent * getOnePercentValue()), animation);
                         }
                     });
                 } else {
-                    buildProgressBar((int) (progressPercent * ONE_PERCENT), animation);
+                    buildProgressBar((int) (progressPercent * getOnePercentValue()), animation);
                 }
                 
                 this.shown = true;
@@ -450,11 +478,11 @@ public class BottomAppBarQe extends FrameLayout {
         }
         
         /** Убрать прогресс */
-        public void remove() {
+        public final void remove() {
             remove(true);
         }
         /**  */
-        public void remove(boolean animation) {
+        public final void remove(boolean animation) {
             if (this.progressBar != null) {
                 if (animation) {
                     Anim<ProgressBar> anim = getLeaveAnimation();
@@ -473,67 +501,85 @@ public class BottomAppBarQe extends FrameLayout {
         }
         
         /** Обновить прогресс */
-        public void refresh(int progress) {
+        public final void refresh(int progress) {
             if (progressBar != null) {
                 progressBar.setX(bottomAppBarQe.fab.getX());
                 progressBar.setY(bottomAppBarQe.fab.getY());
                 progressBar.getLayoutParams().height = bottomAppBarQe.fab.getHeight();
                 progressBar.getLayoutParams().width = bottomAppBarQe.fab.getWidth();
-                progressBar.setMax(MAX_PB);
+                progressBar.setMax(getProgressMaxValue());
                 progressBar.setProgress(progress);
             }
         }
 
         /** Добавить процент прогресса */
-        public void add(@FloatRange(from = 0.0, to = 100.0) float percent) {
+        public final void add(@FloatRange(from = 0.0, to = 100.0) float percent) {
             if (this.progressBar != null) {
-                int step = (int) ((MAX_PB / 100.0) * percent);
+                int step = (int) ((getProgressMaxValue() / 100.0) * percent);
                 set(this.progressBar.getProgress() + step);
             }
         }
         /** Изменить процент прогресса */
-        public void set(@FloatRange(from = 0.0, to = 100.0) float percent) {
-            int step = (int) ((MAX_PB / 100.0) * percent);
+        public final void set(@FloatRange(from = 0.0, to = 100.0) float percent) {
+            int step = (int) ((getProgressMaxValue() / 100.0) * percent);
             set(step);
         }
         /** Получить текущий прогресс */
         @FloatRange(from = 0.0, to = 100.0)
-        public float getValue() {
-            if (this.progressBar != null) return this.progressBar.getProgress() / ONE_PERCENT;
+        public final float getValue() {
+            if (this.progressBar != null) return this.progressBar.getProgress() / getOnePercentValue();
             return 0f;
         }
         /** Получить текущий прогресс */
         @IntRange(from = 0, to = MAX_PB)
-        public int getRealValue() {
+        public final int getRealValue() {
             if (this.progressBar != null) return this.progressBar.getProgress();
             return 0;
         }
         
         /** Изменить цвет прогресса */
-        public void setColor(int color) {
+        public final void setColor(int color) {
             this.colorProgressBar = color;
             refreshColor();
         }
-        
+
+        /** Максимальное значение ProgressBar */
+        protected int getProgressMaxValue() {
+            return MAX_PB;
+        }
+        /** 1 процент от максимального значения */
+        protected float getOnePercentValue() {
+            return (getProgressMaxValue() / 100.0f);
+        }
+
         @Nullable
         protected Anim<ProgressBar> getShowAnimation() {
             return Anim.animate(progressBar)
-                    .play(new Alpha<>(new AnimParams.OfFloat<>(0f, 1f, Durations.DURATION_VERY_VERY_SHORT)))
-                    .with(new ScaleX<>(new AnimParams.OfFloat<>(1.5f, 1f, Durations.DURATION_VERY_VERY_SHORT)))
-                    .with(new ScaleX<>(new AnimParams.OfFloat<>(1.5f, 1f, Durations.DURATION_VERY_VERY_SHORT)))
+                    .play(new Alpha<>(new AnimParams.OfFloat<>(0f, 1f, getDurationProgressShow())))
+                    .with(new ScaleX<>(new AnimParams.OfFloat<>(1.5f, 1f, getDurationProgressShow())))
+                    .with(new ScaleY<>(new AnimParams.OfFloat<>(1.5f, 1f, getDurationProgressShow())))
                     .build();
         }
         @Nullable
         protected Anim<ProgressBar> getLeaveAnimation() {
             return Anim.animate(progressBar)
-                    .play(new Alpha<>(new AnimParams.OfFloat<>(1f, 0f, Durations.DURATION_VERY_VERY_SHORT)))
-                    .with(new ScaleX<>(new AnimParams.OfFloat<>(1f, 1.5f, Durations.DURATION_VERY_VERY_SHORT)))
-                    .with(new ScaleX<>(new AnimParams.OfFloat<>(1f, 1.5f, Durations.DURATION_VERY_VERY_SHORT)))
+                    .play(new Alpha<>(new AnimParams.OfFloat<>(1f, 0f, getDurationProgressLeave())))
+                    .with(new ScaleX<>(new AnimParams.OfFloat<>(1f, 1.5f, getDurationProgressLeave())))
+                    .with(new ScaleY<>(new AnimParams.OfFloat<>(1f, 1.5f, getDurationProgressLeave())))
                     .build();
         }
-        
+
+        /** Длительность анимации прогресса */
         protected long getDurationProgressAnimation() {
-            return 1000L;
+            return DURATION_PROGRESS_ANIMATION;
+        }
+        /** Длительность анимации ухода ProgressBar */
+        protected long getDurationProgressLeave() {
+            return DURATION_PROGRESS_LEAVE;
+        }
+        /** Длительность анимации появления ProgressBar */
+        protected long getDurationProgressShow() {
+            return DURATION_PROGRESS_SHOW;
         }
 
         /** Изменить уровень прогресса */
@@ -542,7 +588,7 @@ public class BottomAppBarQe extends FrameLayout {
                 ProgressBarAnimation anim = ProgressBarAnimation.animateProgress(progressBar, progressBar.getProgress(), value, getDurationProgressAnimation());
                 anim.start();
 
-                if (value >= MAX_PB)
+                if (value >= getProgressMaxValue())
                     anim.getOnEnd().subscribe(new Subscriber.Twins<Anim<ProgressBar>, Animator>() {
                         @Override
                         public void onCall(Anim<ProgressBar> first, Animator second) {
@@ -551,7 +597,6 @@ public class BottomAppBarQe extends FrameLayout {
                     });
             }
         }
-
         /** Построение ProgressBar */
         private void buildProgressBar(@IntRange(from = 0, to = MAX_PB) int progress, boolean animation) {
             inflate(bottomAppBarQe.getContext(), R.layout.progress_bar_fab, bottomAppBarQe.findViewById(R.id.coordinator));
@@ -561,7 +606,7 @@ public class BottomAppBarQe extends FrameLayout {
 
             progressBar.getLayoutParams().height = bottomAppBarQe.fab.getHeight();
             progressBar.getLayoutParams().width = bottomAppBarQe.fab.getWidth();
-            progressBar.setMax(MAX_PB);
+            progressBar.setMax(getProgressMaxValue());
             progressBar.setProgress(progress);
 
             refreshColor();
@@ -579,6 +624,7 @@ public class BottomAppBarQe extends FrameLayout {
                 progressBar = null;
             }
         }
+        /** Обновление цвета. */
         private void refreshColor() {
             if (progressBar != null)
                 progressBar.getProgressDrawable().setColorFilter(colorProgressBar, PorterDuff.Mode.SRC_IN);
@@ -588,8 +634,11 @@ public class BottomAppBarQe extends FrameLayout {
     /**  */
     public static class Snack {
 
+        /** Типы углов */
         public enum Corner {
+            /** Обрезанные */
             CUT,
+            /** Закругленные */
             ROUND
         }
 
@@ -649,7 +698,7 @@ public class BottomAppBarQe extends FrameLayout {
             this.bottomAppBarQe = bottomAppBarQe;
 
             this.colorButtonText = bottomAppBarQe.colorAccent;
-            this.colorButtonBody = colorBody;
+            this.colorButtonBody = Color.YELLOW;
             this.colorButtonRipple = bottomAppBarQe.colorPrimary;
 
             this.buttonText = bottomAppBarQe.getResources().getString(R.string.snack_ok);
@@ -659,29 +708,29 @@ public class BottomAppBarQe extends FrameLayout {
 
         //region Getters/Setters
 
-        public void setColorBody(int colorBody) {
+        public final void setColorBody(int colorBody) {
             this.colorBody = colorBody;
         }
-        public void setColorText(int colorText) {
+        public final void setColorText(int colorText) {
             this.colorText = colorText;
         }
-        public void setColorButtonText(int colorButtonText) {
+        public final void setColorButtonText(int colorButtonText) {
             this.colorButtonText = colorButtonText;
         }
-        public void setColorButtonBody(int colorButtonBody) {
+        public final void setColorButtonBody(int colorButtonBody) {
             this.colorButtonBody = colorButtonBody;
         }
-        public void setColorButtonRipple(int colorButtonRipple) {
+        public final void setColorButtonRipple(int colorButtonRipple) {
             this.colorButtonRipple = colorButtonRipple;
         }
-        public void setButtonText(String buttonText) {
+        public final void setButtonText(String buttonText) {
             this.buttonText = buttonText;
         }
 
         //endregion
 
         @NonNull
-        public Builder make(String text) {
+        public final Builder make(String text) {
             return new Builder(text);
         }
 
@@ -695,44 +744,65 @@ public class BottomAppBarQe extends FrameLayout {
         public final Snackbar show(String text, long duration) {
             return show(text, duration, null);
         }
-        /** Показать SnackBar */
-        @NonNull
-        private Snackbar show(String text, long duration, @Nullable Settings settings) {
-
-            final Snackbar snackbar = Snackbar.make(bottomAppBarQe, settings != null ? settings.getText() : text, Snackbar.LENGTH_INDEFINITE);
-            Timer timer = new Timer();
-            TimerTask timerTask = new TimerTask() {
-                @Override
-                public void run() {
-                    ((Activity) bottomAppBarQe.getContext()).runOnUiThread(new TimerTask() {
-                        @Override
-                        public void run() {
-                            animateSnackBarFade(snackbar);
-                        }
-                    });
-                }
-            };
-            timer.schedule(timerTask, settings == null ? duration : settings.getDuration());
-            snackBarViewBuilder(snackbar, snackbar.getView(), settings);
-            snackbar.show();
-            QeViews.doOnMeasureView(snackbar.getView(), new Do.With<View>() {
-                @Override
-                public void work(View with) {
-                    animateSnackBarStart(snackbar);
-                }
-            });
-
-            return snackbar;
-        }
 
         /** Поменять тип углов у SnackBar */
-        public void setCorners(@NonNull Corner corners, int radius) {
+        public final void setCorners(@NonNull Corner corners, int radius) {
             this.corners = corners;
             this.radius = radius;
         }
         /** Поменять тип углов у SnackBar */
-        public void setCorners(@NonNull Corner corners) {
+        public final void setCorners(@NonNull Corner corners) {
             setCorners(corners, this.radius);
+        }
+
+        /** Скорость стандартной анимации появления */
+        protected long getDurationSnackShow() {
+            return DURATION_SNACK_SHOW;
+        }
+        /** Скорость стандартной анимации ухода */
+        protected long getDurationSnackLeave() {
+            return DURATION_SNACK_LEAVE;
+        }
+
+        /** Анимация для появления SnackBar */
+        @Nullable
+        protected Anim<View> animateSnackShow(View view) {
+            AnimView<View> animDefault = AnimView.animate(view);
+            animDefault.playTogether(
+                    TranslationY.animate(new AnimParams.OfFloat<>(view.getHeight() * 3f, 0f, new OtherParams() {
+                        @Override
+                        public long getDuration() {
+                            return getDurationSnackShow();
+                        }
+
+                        @Override
+                        public Interpolator getInterpolator() {
+                            return new OvershootInterpolator(1f);
+                        }
+                    })),
+                    Alpha.animate(new AnimParams.OfFloat<>(0f, 1f, getDurationSnackShow() / 2))
+            );
+            return animDefault;
+        }
+        /** Анимация для ухода SnackBar */
+        @Nullable
+        protected Anim<View> animateSnackLeave(View view) {
+            AnimView<View> anim = AnimView.animate(view);
+            anim.playTogether(
+                    TranslationY.animate(new AnimParams.OfFloat<>(0f, view.getHeight() * 3f, new OtherParams() {
+                        @Override
+                        public long getDuration() {
+                            return getDurationSnackLeave();
+                        }
+
+                        @Override
+                        public Interpolator getInterpolator() {
+                            return new OvershootInterpolator(0.8f);
+                        }
+                    })),
+                    Alpha.animate(new AnimParams.OfFloat<>(1f, 0f, getDurationSnackLeave()))
+            );
+            return anim;
         }
 
         /** Построенеи View у SnackBar */
@@ -751,13 +821,13 @@ public class BottomAppBarQe extends FrameLayout {
             SnackbarContentLayout view_snack = (SnackbarContentLayout) snackbarLayout.getChildAt(0);
             view_snack.setPadding(0, 0, dp(6), 0);
 
-            MaterialButton button = (MaterialButton) view_snack.getChildAt(1);
+            Button button = (Button) view_snack.getChildAt(1);
             button.setVisibility(VISIBLE);
             button.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (settings != null && settings.getOnButtonClick() != null) settings.getOnButtonClick().work();
-                    animateSnackBarFade(snackbar);
+                    animateSnackBarLeave(snackbar);
                 }
             });
             button.setPadding(0, 0, 0, 0);
@@ -797,24 +867,45 @@ public class BottomAppBarQe extends FrameLayout {
             return view;
         }
 
-        private void animateSnackBarFade(final Snackbar snackbar) {
+        /** Показать SnackBar */
+        @NonNull
+        private Snackbar show(String text, long duration, @Nullable Settings settings) {
+
+            final Snackbar snackbar = Snackbar.make(bottomAppBarQe, settings != null ? settings.getText() : text, Snackbar.LENGTH_INDEFINITE);
+            Timer timer = new Timer();
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    ((Activity) bottomAppBarQe.getContext()).runOnUiThread(new TimerTask() {
+                        @Override
+                        public void run() {
+                            animateSnackBarLeave(snackbar);
+                        }
+                    });
+                }
+            };
+            timer.schedule(timerTask, settings == null ? duration : settings.getDuration());
+            snackBarViewBuilder(snackbar, snackbar.getView(), settings);
+            snackbar.show();
+            QeViews.doOnMeasureView(snackbar.getView(), new Do.With<View>() {
+                @Override
+                public void work(View with) {
+                    animateSnackBarShow(snackbar);
+                }
+            });
+
+            return snackbar;
+        }
+
+        /** Вызов анимации ухода */
+        private void animateSnackBarLeave(final Snackbar snackbar) {
             if (snackbar.isShown()) {
-                AnimView<View> animDefault = AnimView.animate(snackbar.getView());
-                animDefault.playTogether(
-                        TranslationY.animate(new AnimParams.OfFloat<>(0f, snackbar.getView().getHeight() * 3f, new OtherParams() {
-                            @Override
-                            public long getDuration() {
-                                return DURATION_SNACK_LEAVE;
-                            }
-
-                            @Override
-                            public Interpolator getInterpolator() {
-                                return new OvershootInterpolator(0.8f);
-                            }
-                        })),
-                        Alpha.animate(new AnimParams.OfFloat<>(1f, 0f, DURATION_SNACK_LEAVE))
-                );
-
+                Anim<View> animDefault = animateSnackLeave(snackbar.getView());
+                if (animDefault == null) {
+                    snackbar.dismiss();
+                    snackbar.getView().setVisibility(GONE);
+                    return;
+                }
                 animDefault.getOnEnd().subscribe(new Subscriber.Twins<Anim<View>, Animator>() {
                     @Override
                     public void onCall(Anim<View> first, Animator second) {
@@ -825,27 +916,17 @@ public class BottomAppBarQe extends FrameLayout {
                 animDefault.start();
             }
         }
-        private void animateSnackBarStart(final Snackbar snackbar) {
-            AnimView<View> animDefault = AnimView.animate(snackbar.getView());
-            animDefault.playTogether(
-                    TranslationY.animate(new AnimParams.OfFloat<>(snackbar.getView().getHeight() * 3f, 0f, new OtherParams() {
-                        @Override
-                        public long getDuration() {
-                            return DURATION_SNACK_SHOW;
-                        }
-
-                        @Override
-                        public Interpolator getInterpolator() {
-                            return new OvershootInterpolator(0.8f);
-                        }
-                    })),
-                    Alpha.animate(new AnimParams.OfFloat<>(0f, 1f, DURATION_SNACK_SHOW))
-            );
-            animDefault.start();
+        /** Вызов анимации появления */
+        private void animateSnackBarShow(final Snackbar snackbar) {
+            Anim<View> anim = animateSnackShow(snackbar.getView());
+            if (anim == null) return;
+            anim.start();
         }
+        /**  */
         private int dp(int val) {
             return bottomAppBarQe.dp(val);
         }
+
 
         public final class Builder {
 
@@ -1001,13 +1082,14 @@ public class BottomAppBarQe extends FrameLayout {
 
         }
     }
-    /**  */
+    /** Конструкция */
     public static abstract class Construction {
 
         private Construction() {
 
         }
 
+        /** Fab End */
         public static final class FABEnd extends Construction {
 
             private FABSettings fabSettings;
@@ -1024,6 +1106,7 @@ public class BottomAppBarQe extends FrameLayout {
             }
         }
 
+        /** Fab Center */
         public static final class FABCenter extends Construction {
 
             private FABSettings fabSettings;
