@@ -164,7 +164,27 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public View.OnClickListener getClickListener() {
-                return null;
+                return new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        bottomAppBarQe.setFabSettings(new BottomAppBarQe.FABSettings() {
+                            @Override
+                            public Drawable getImage() {
+                                return getDrawable(R.drawable.help);
+                            }
+
+                            @Override
+                            public View.OnClickListener getClickListener() {
+                                return new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        bottomAppBarQe.snack().show("GG");
+                                    }
+                                };
+                            }
+                        });
+                    }
+                };
             }
         };
         BottomAppBarQe.IconSettings icon_1 = new BottomAppBarQe.IconSettings() {
@@ -202,7 +222,6 @@ public class MainActivity extends AppCompatActivity {
         };
         return new BottomAppBarQe.Construction.FABEnd(fab, icon_0, icon_1, icon_2, icon_3);
     }
-
 
     public static int getRandomColor() {
         return getRandomColor(255);
