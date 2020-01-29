@@ -374,6 +374,7 @@ public class BottomAppBarQe extends FrameLayout {
         }
     }
 
+
     /** Длительность анимации появления иконок */
     protected long getDurationIconsShow() {
         return DURATION_ICONS;
