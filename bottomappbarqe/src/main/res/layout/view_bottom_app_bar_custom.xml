@@ -2,116 +2,149 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:layout_height="wrap_content">
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:id="@+id/coordinator"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/height_bottom_app_bar_custom">
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab"
-            style="@style/Widget.MaterialComponents.FloatingActionButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_anchor="@id/bab"
-            app:tint="@null"/>
-
-        <com.google.android.material.bottomappbar.BottomAppBar
-            android:id="@+id/bab"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/height_bottom_app_bar"
-            android:layout_gravity="bottom"
-            app:contentInsetStart="0dp" />
+        android:layout_height="wrap_content"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
         <FrameLayout
+            android:id="@+id/bottomContainer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="80dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:paddingTop="10dp">
 
-            <LinearLayout
-                android:id="@+id/icons_right"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/height_bottom_app_bar"
-                android:layout_gravity="bottom|end"
-                android:gravity="end"
-                android:orientation="horizontal"
-                android:paddingStart="20dp">
+            <View
+                android:id="@+id/backSpace"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_gravity="bottom"
+                android:translationY="100dp" />
 
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/icon_right_0"
-                    style="@style/style_bottom_app_bar_icon"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp" />
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/icon_right_1"
-                    style="@style/style_bottom_app_bar_icon"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/icons_left"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/height_bottom_app_bar"
-                android:layout_gravity="bottom|start"
-                android:gravity="start"
-                android:orientation="horizontal"
-                android:paddingEnd="20dp">
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/icon_left_0"
-                    style="@style/style_bottom_app_bar_icon"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="12dp" />
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/icon_left_1"
-                    style="@style/style_bottom_app_bar_icon"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/icons_all_left"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/height_bottom_app_bar"
-                android:layout_gravity="bottom|start"
-                android:orientation="horizontal"
-                android:paddingEnd="50dp"
-                android:visibility="visible">
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/icon_all_left_0"
-                    style="@style/style_bottom_app_bar_icon"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="12dp" />
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/icon_all_left_1"
-                    style="@style/style_bottom_app_bar_icon"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp" />
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/icon_all_left_2"
-                    style="@style/style_bottom_app_bar_icon"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp" />
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/icon_all_left_3"
-                    style="@style/style_bottom_app_bar_icon"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp" />
-
-            </LinearLayout>
+            <com.qegame.bottomappbarqe.BottomSheetView
+                android:id="@+id/sheet"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
         </FrameLayout>
 
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/coordinator"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/height_bottom_app_bar_custom">
+
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab"
+                style="@style/Widget.MaterialComponents.FloatingActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_anchor="@id/bab"
+                app:tint="@null" />
+
+            <com.google.android.material.bottomappbar.BottomAppBar
+                android:id="@+id/bab"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/height_bottom_app_bar"
+                android:layout_gravity="bottom"
+                app:contentInsetStart="0dp" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:id="@+id/icons_right"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/height_bottom_app_bar"
+                    android:layout_gravity="bottom|end"
+                    android:gravity="end"
+                    android:orientation="horizontal"
+                    android:paddingStart="20dp">
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/icon_right_0"
+                        style="@style/style_bottom_app_bar_icon"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/icon_right_1"
+                        style="@style/style_bottom_app_bar_icon"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/icons_left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/height_bottom_app_bar"
+                    android:layout_gravity="bottom|start"
+                    android:gravity="start"
+                    android:orientation="horizontal"
+                    android:paddingEnd="20dp">
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/icon_left_0"
+                        style="@style/style_bottom_app_bar_icon"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="12dp" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/icon_left_1"
+                        style="@style/style_bottom_app_bar_icon"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/icons_all_left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/height_bottom_app_bar"
+                    android:layout_gravity="bottom|start"
+                    android:orientation="horizontal"
+                    android:paddingEnd="50dp"
+                    android:visibility="visible">
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/icon_all_left_0"
+                        style="@style/style_bottom_app_bar_icon"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="12dp" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/icon_all_left_1"
+                        style="@style/style_bottom_app_bar_icon"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/icon_all_left_2"
+                        style="@style/style_bottom_app_bar_icon"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/icon_all_left_3"
+                        style="@style/style_bottom_app_bar_icon"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp" />
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    </FrameLayout>
+
+
 
 </merge>

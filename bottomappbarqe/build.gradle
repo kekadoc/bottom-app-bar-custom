@@ -36,10 +36,10 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
 
     implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'com.google.android.material:material:1.2.0-alpha01'
+    implementation 'com.google.android.material:material:1.2.0-alpha04'
 
-    implementation 'com.github.qeGame:AnimSimple:0.7.16-alpha.12'
-    implementation 'com.github.qeGame:qeUtilLib:0.5.0-alpha.11'
-    implementation 'com.github.qeGame:QeShaper:0.2.0-alpha.5'
+    implementation 'com.github.qeGame:AnimSimple:0.7.16-alpha.15'
+    implementation 'com.github.qeGame:qeUtilLib:0.5.2-alpha.02'
+    implementation 'com.github.qeGame:QeShaper:0.2.2-alpha.1'
 
 }

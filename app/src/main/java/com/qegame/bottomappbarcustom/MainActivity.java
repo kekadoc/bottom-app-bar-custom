@@ -5,9 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
 import com.qegame.qeutil.QeUtil;
+import com.qegame.qeutil.graph.QeColor;
 import com.qegame.qeutil.listening.subscriber.Subscriber;
 
 
@@ -129,13 +131,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
 
-                        bottomAppBarQe.setColorPanel(getRandomColor());
-                        bottomAppBarQe.setFabColor(getRandomColor());
-                        bottomAppBarQe.progress().setColor(getRandomColor());
+                        bottomAppBarQe.setColorPanel(QeColor.getRandomColor());
+                        bottomAppBarQe.setFabColor(QeColor.getRandomColor());
+                        bottomAppBarQe.progress().setColor(QeColor.getRandomColor());
                     }
                 };
             }
         };
+
         return new BottomAppBarQe.Construction.FABCenter(fab, new BottomAppBarQe.IconSettings[] {icon_0, icon_1}, new BottomAppBarQe.IconSettings[] {icon_2, icon_3});
     }
     public BottomAppBarQe.Construction.FABEnd getFabEnd() {
@@ -167,22 +170,7 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        bottomAppBarQe.setFabSettings(new BottomAppBarQe.FABSettings() {
-                            @Override
-                            public Drawable getImage() {
-                                return getDrawable(R.drawable.help);
-                            }
-
-                            @Override
-                            public View.OnClickListener getClickListener() {
-                                return new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        bottomAppBarQe.snack().show("GG");
-                                    }
-                                };
-                            }
-                        });
+                        bottomAppBarQe.sheet().swich();
                     }
                 };
             }
@@ -195,7 +183,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public View.OnClickListener getClickListener() {
-                return null;
+                return new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        bottomAppBarQe.sheet().setHeight(bottomAppBarQe.sheet().getHeight() + 50);
+                    }
+                };
             }
         };
         BottomAppBarQe.IconSettings icon_2 = new BottomAppBarQe.IconSettings() {
@@ -206,7 +199,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public View.OnClickListener getClickListener() {
-                return null;
+                return new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        bottomAppBarQe.sheet().setColor(Color.MAGENTA);
+                    }
+                };
             }
         };
         BottomAppBarQe.IconSettings icon_3 = new BottomAppBarQe.IconSettings() {
@@ -223,10 +221,6 @@ public class MainActivity extends AppCompatActivity {
         return new BottomAppBarQe.Construction.FABEnd(fab, icon_0, icon_1, icon_2, icon_3);
     }
 
-    public static int getRandomColor() {
-        return getRandomColor(255);
-    }
-    public static int getRandomColor(int alpha) {
-        return Color.argb(alpha, QeUtil.getRandom().nextInt(256), QeUtil.getRandom().nextInt(256) , QeUtil.getRandom().nextInt(256));
-    }
+
+
 }

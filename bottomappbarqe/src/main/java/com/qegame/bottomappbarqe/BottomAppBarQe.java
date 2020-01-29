@@ -8,7 +8,7 @@ import android.content.res.TypedArray;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.TypedValue;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.Interpolator;
@@ -19,6 +19,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.CallSuper;
 import androidx.annotation.ColorInt;
 import androidx.annotation.FloatRange;
 import androidx.annotation.IntRange;
@@ -39,6 +40,7 @@ import com.qegame.animsimple.anim.AnimView;
 import com.qegame.animsimple.anim.MoveLeft;
 import com.qegame.animsimple.anim.MoveRight;
 import com.qegame.animsimple.anim.Scale;
+import com.qegame.animsimple.interpolator.BounceInterpolator;
 import com.qegame.animsimple.path.Alpha;
 import com.qegame.animsimple.path.ScaleX;
 import com.qegame.animsimple.path.ScaleY;
@@ -48,7 +50,8 @@ import com.qegame.animsimple.path.params.OtherParams;
 import com.qegame.animsimple.viewsanimations.ProgressBarAnimation;
 import com.qegame.qeshaper.QeShaper;
 import com.qegame.qeutil.androids.QeAndroid;
-import com.qegame.qeutil.androids.QeViews;
+import com.qegame.qeutil.androids.views.QeViews;
+import com.qegame.qeutil.androids.views.listeners.OnSwipeListener;
 import com.qegame.qeutil.doing.Do;
 import com.qegame.qeutil.listening.listener.Listener;
 import com.qegame.qeutil.listening.subscriber.Subscriber;
@@ -79,7 +82,7 @@ public class BottomAppBarQe extends FrameLayout {
         };
         
         static void runDefaultAnimation(FloatingActionButton fab) {
-            Scale.animate(fab, new AnimParams.OfFloat<>(0f, 1f, 400L, new OvershootInterpolator())).start();
+            Scale.animate(fab, new AnimParams.OfFloat<>(0f, 1f, 4000L, new OvershootInterpolator())).start();
         }
         
         /** Изображение */
@@ -90,6 +93,7 @@ public class BottomAppBarQe extends FrameLayout {
         default void createAnimation(FloatingActionButton fab) {
             runDefaultAnimation(fab);
         }
+
     }
     /** Настройка иконки. */
     public interface IconSettings {
@@ -114,6 +118,7 @@ public class BottomAppBarQe extends FrameLayout {
 
     private FloatingActionButton fab;
     private BottomAppBar bottomAppBar;
+
     private CoordinatorLayout coordinatorLayout;
 
     private LinearLayout icons_all_left;
@@ -122,6 +127,7 @@ public class BottomAppBarQe extends FrameLayout {
     private AppCompatImageView[] images_left;
     private LinearLayout icons_right;
     private AppCompatImageView[] images_right;
+
 
     /** Текщие настройки FAB */
     private FABSettings fabSettings;
@@ -141,6 +147,8 @@ public class BottomAppBarQe extends FrameLayout {
     private Progress progress;
     /** Управление SnackBar */
     private Snack snack;
+    /** Нижняя панель */
+    private Sheet sheet;
 
     public BottomAppBarQe(Context context) {
         super(context);
@@ -162,30 +170,24 @@ public class BottomAppBarQe extends FrameLayout {
     private void init(Context context, AttributeSet attrs) {
         inflate(getContext(), R.layout.view_bottom_app_bar_custom,this);
 
-        fab = findViewById(R.id.fab);
-        bottomAppBar = findViewById(R.id.bab);
-        coordinatorLayout = findViewById(R.id.coordinator);
-        icons_all_left = findViewById(R.id.icons_all_left);
-        icons_left = findViewById(R.id.icons_left);
-        icons_right = findViewById(R.id.icons_right);
+        int[] colors = QeAndroid.getThemeColors(context, QeAndroid.ThemeColor.PRIMARY, QeAndroid.ThemeColor.ACCENT);
 
-        fab.setElevation(getResources().getDimension(R.dimen.elevation_fab));
-        bottomAppBar.setElevation(getResources().getDimension(R.dimen.elevation_bar));
-        setElevation(getResources().getDimension(R.dimen.elevation_bar));
+        this.colorPrimary = colors[0];
+        this.colorAccent = colors[1];
 
-        TypedValue typedValue = new TypedValue();
-        TypedArray a = context.obtainStyledAttributes(typedValue.data, new int[] { R.attr.colorPrimary, R.attr.colorAccent });
-        this.colorPrimary = a.getColor(0, 0);
-        this.colorAccent = a.getColor(1, 0);
-        a.recycle();
+        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.BottomAppBarQe, 0, 0);
+        float sheetHeight = ta.getDimension(R.styleable.BottomAppBarQe_sheetMaxHeight, 0);
+        ta.recycle();
 
-        this.colorFAB = colorAccent;
-        this.colorPanel = colorPrimary;
+        this.fab = findViewById(R.id.fab);
+        this.bottomAppBar = findViewById(R.id.bab);
+        this.coordinatorLayout = findViewById(R.id.coordinator);
+        this.icons_all_left = findViewById(R.id.icons_all_left);
+        this.icons_left = findViewById(R.id.icons_left);
+        this.icons_right = findViewById(R.id.icons_right);
 
-        this.progress = new Progress(this);
-        this.snack = new Snack(this);
-
-        fab.setOnClickListener(new OnClickListener() {
+        this.fab.setElevation(getResources().getDimension(R.dimen.elevation_fab));
+        this.fab.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(getFabSettings().getClickListener() == null) {
@@ -199,23 +201,40 @@ public class BottomAppBarQe extends FrameLayout {
             }
         });
 
-        images_all_left = new AppCompatImageView[icons_all_left.getChildCount()];
-        for (int i = 0; i < icons_all_left.getChildCount(); i++) {
-            images_all_left[i] = (AppCompatImageView) icons_all_left.getChildAt(i);
-        }
-        images_left = new AppCompatImageView[icons_left.getChildCount()];
-        for (int i = 0; i < icons_left.getChildCount(); i++) {
-            images_left[i] = (AppCompatImageView) icons_left.getChildAt(i);
-        }
-        images_right = new AppCompatImageView[icons_right.getChildCount()];
-        for (int i = 0; i < icons_right.getChildCount(); i++) {
-            images_right[i] = (AppCompatImageView) icons_right.getChildAt(i);
-        }
+        this.bottomAppBar.setElevation(getResources().getDimension(R.dimen.elevation_bar));
+
+
+        this.colorFAB = this.colorAccent;
+        this.colorPanel = this.colorPrimary;
+
+        this.progress = new Progress(this);
+        this.snack = new Snack(this);
+        this.sheet = new Sheet(this);
+        sheet().getView().setSheetHeight((int) sheetHeight);
+
+
+        this.images_all_left = new AppCompatImageView[this.icons_all_left.getChildCount()];
+        for (int i = 0; i < this.icons_all_left.getChildCount(); i++)
+            this.images_all_left[i] = (AppCompatImageView) this.icons_all_left.getChildAt(i);
+
+        this.images_left = new AppCompatImageView[this.icons_left.getChildCount()];
+        for (int i = 0; i < this.icons_left.getChildCount(); i++)
+            this.images_left[i] = (AppCompatImageView) this.icons_left.getChildAt(i);
+
+        this.images_right = new AppCompatImageView[this.icons_right.getChildCount()];
+        for (int i = 0; i < this.icons_right.getChildCount(); i++)
+            this.images_right[i] = (AppCompatImageView) this.icons_right.getChildAt(i);
+
 
         setConstruction(new Construction.FABCenter(FABSettings.EMPTY_SETTINGS, null, null));
 
-        setColorPanel(colorPanel);
+        setColorPanel(this.colorPanel);
         refreshFabColor();
+
+        setElevation(getResources().getDimension(R.dimen.elevation_bar));
+        setClipChildren(false);
+        setClipToPadding(false);
+
     }
 
     //region Getters/Setters
@@ -249,6 +268,10 @@ public class BottomAppBarQe extends FrameLayout {
         this.snack = snack;
     }
 
+    public final void setSheet(Sheet sheet) {
+        this.sheet = sheet;
+    }
+
     //endregion
 
     /** Управление SnackBar */
@@ -260,6 +283,11 @@ public class BottomAppBarQe extends FrameLayout {
     @NonNull
     public final Progress progress() {
         return progress;
+    }
+    /**  */
+    @NonNull
+    public final Sheet sheet() {
+        return sheet;
     }
 
     /** Сменить конструкцию */
@@ -313,13 +341,16 @@ public class BottomAppBarQe extends FrameLayout {
         this.icons_all_left.setBackgroundColor(color);
         this.icons_left.setBackgroundColor(color);
         this.icons_right.setBackgroundColor(color);
+        this.sheet.setColor(color);
     }
     /** Изменить цвет FAB */
     public final void setFabColor(@ColorInt int color) {
         this.colorFAB = color;
         refreshFabColor();
     }
-    /** Программный клик по иконке на панели
+    /**
+     *
+     * Программный клик по иконке на панели
      * @param position Позиция иконки относительно левого края */
     public final void performClickIcon(int position) {
         if (this.construction instanceof Construction.FABEnd) {
@@ -378,7 +409,7 @@ public class BottomAppBarQe extends FrameLayout {
         icons_right.setVisibility(GONE);
 
         setFabSettings(fabSettings, false);
-        bottomAppBar.setFabAlignmentMode(fabAlignment);
+
         if (bottomAppBar.getFabAlignmentMode() != fabAlignment)
             bottomAppBar.setFabAlignmentMode(fabAlignment);
 
@@ -397,6 +428,198 @@ public class BottomAppBarQe extends FrameLayout {
         getFab().setBackgroundTintList(ColorStateList.valueOf(colorFAB));
     }
 
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        if (!sheet().isExpanded()) {
+            float h = sheet().getView().getHeight();
+            float t = h == 0? sheet().getView().getSheetHeight() : h;
+            setTranslationY(t);
+        }
+    }
+
+    @Override
+    public void setTranslationY(float translationY) {
+        super.setTranslationY(translationY);
+        sheet.onSetTranslationY(translationY);
+    }
+
+    /** Управление нижней панелью */
+    public static class Sheet implements OnSwipeListener {
+
+        /** Sheet в полной видимости */
+        private boolean expanded;
+
+        private View backSpace;
+        private FrameLayout bottomContainer;
+        private BottomSheetView bottomSheetView;
+
+        private BottomAppBarQe bottomAppBarQe;
+
+        public Sheet(BottomAppBarQe bottomAppBarQe) {
+            this.bottomAppBarQe = bottomAppBarQe;
+            this.backSpace = bottomAppBarQe.findViewById(R.id.backSpace);
+            this.bottomContainer = bottomAppBarQe.findViewById(R.id.bottomContainer);
+            this.bottomSheetView = bottomAppBarQe.findViewById(R.id.sheet);
+            this.bottomSheetView.setSheet(this);
+        }
+
+        public void show() {
+            setExpanded(true, true);
+        }
+        public void hide() {
+            setExpanded(false, true);
+        }
+        public void swich() {
+            if (isExpanded()) hide();
+            else show();
+        }
+
+        public final boolean isExpanded() {
+            return expanded;
+        }
+
+        @NonNull
+        public final BottomSheetView getView() {
+            return bottomSheetView;
+        }
+
+        public final void autoCorrectPosition() {
+            float y = bottomAppBarQe.getTranslationY();
+            if (expanded) {
+                if (y <= getToAutoDown()) animateExpand();
+                else animateCollapse();
+            } else {
+                if (y >= getToAutoUp()) animateCollapse();
+                else animateExpand();
+            }
+        }
+
+        public final void setExpanded(boolean expanded, boolean animate) {
+            if (expanded == this.expanded) return;
+            this.expanded = expanded;
+            if (expanded) {
+                onExpand();
+                if (animate) animateExpand();
+            }
+            else {
+                onDeExpand();
+                if (animate) animateCollapse();
+            }
+        }
+
+        public final void setHeight(int height) {
+            getView().setSheetHeight(height);
+        }
+        public final int getHeight() {
+            return getView().getHeight();
+        }
+
+        @CallSuper
+        public void setColor(@ColorInt int color) {
+            bottomSheetView.setBackgroundColor(color);
+            backSpace.setBackgroundColor(color);
+            bottomContainer.setBackgroundColor(color);
+        }
+
+        public View getBackSpace() {
+            return backSpace;
+        }
+
+        @CallSuper
+        protected void onSetTranslationY(float translationY) {
+            if (translationY <= getMaxUp()) {
+                setExpanded(true, false);
+            } else if (translationY >= getMaxDown()) {
+                setExpanded(false, false);
+            }
+        }
+
+        protected void onExpand() {
+
+        }
+        protected void onDeExpand() {
+
+        }
+
+        private void animateCollapse() {
+            TranslationY.builder(bottomAppBarQe)
+                    .duration(600L)
+                    .interpolator(new BounceInterpolator(1))
+                    .from(bottomAppBarQe.getTranslationY())
+                    .to(getMaxDown())
+                    .build().start();
+        }
+        private void animateExpand() {
+            TranslationY.builder(bottomAppBarQe)
+                    .duration(600L)
+                    .interpolator(new OvershootInterpolator())
+                    .from(bottomAppBarQe.getTranslationY())
+                    .to( - getMaxUp())
+                    .build().start();
+        }
+
+        private float getMaxUp() {
+            return 0;
+        }
+        private float getMaxDown() {
+            return bottomSheetView.getHeight();
+        }
+
+        private float getToAutoDown() {
+            return bottomSheetView.getHeight() * 0.20f;
+        }
+        private float getToAutoUp() {
+            return bottomSheetView.getHeight() * 0.80f;
+        }
+
+        private void changePosition(float change) {
+            float trans = bottomAppBarQe.getTranslationY() + change;
+
+            if (trans > getMaxDown())  {
+                animateCollapse();
+                return;
+            }
+            if (trans < 0) {
+                animateExpand();
+                return;
+            }
+            bottomAppBarQe.setTranslationY(trans);
+        }
+
+        @Override
+        public void onUp(float x, float y, float dxStart, float dyStart) {
+            autoCorrectPosition();
+        }
+        @Override
+        public void onDown(float x, float y) {
+
+        }
+        @Override
+        public void onMove(float dxStart, float dyStart, float dx, float dy) {
+
+        }
+        @Override
+        public void onSwipeLeft(float startDistance, float distance) {
+
+        }
+        @Override
+        public void onSwipeTop(float startDistance, float distance) {
+            float ch = (float) (Math.pow(distance, 2) * -0.009f);
+            changePosition(ch);
+        }
+        @Override
+        public void onSwipeRight(float startDistance, float distance) {
+
+        }
+        @Override
+        public void onSwipeBottom(float startDistance, float distance) {
+            changePosition(distance);
+        }
+
+    }
     /**  */
     public static class Progress {
 
@@ -828,6 +1051,7 @@ public class BottomAppBarQe extends FrameLayout {
                         @Override
                         public void run() {
                             animateSnackBarLeave(snackbar);
+
                         }
                     });
                 }
@@ -1100,4 +1324,5 @@ public class BottomAppBarQe extends FrameLayout {
         }
 
     }
+
 }
