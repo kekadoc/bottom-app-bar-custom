@@ -18,8 +18,7 @@
             android:id="@+id/bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            app:sheetMaxHeight="200dp"/>
+            android:layout_gravity="bottom"/>
 
     </com.qegame.bottomappbarqe.BottomSheetContainer>
 

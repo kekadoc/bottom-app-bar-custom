@@ -1,26 +1,20 @@
 package com.qegame.bottomappbarqe;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.qegame.qeutil.androids.QeAndroid;
 import com.qegame.qeutil.androids.views.QeViews;
 
 public class BottomSheetView extends FrameLayout {
     private static final String TAG = "BottomSheetView-TAG";
 
-    public static final int DEFAULT_SHEET_HEIGHT_DP = 200;
-
-    private int height = DEFAULT_SHEET_HEIGHT_DP;
+    @Nullable
+    private Integer customHeight;
 
     private BottomAppBarQe.Sheet sheet;
 
@@ -42,34 +36,38 @@ public class BottomSheetView extends FrameLayout {
     }
 
     private void init(Context context, @Nullable AttributeSet attrs) {
-        this.height = QeAndroid.dpToPx(context, DEFAULT_SHEET_HEIGHT_DP);
+
     }
 
     public void setSheet(BottomAppBarQe.Sheet sheet) {
         this.sheet = sheet;
     }
 
-    public int getSheetHeight() {
-        return height;
+    @Nullable
+    public Integer getCustomHeight() {
+        return customHeight;
     }
-    public void setSheetHeight(int height) {
-        if (height < -2) height = 0;
-        this.height = height;
-        float backHeight = height * 0.5f;
-        float tY = backHeight * 0.5f;
-        QeViews.setSize(sheet.getBackSpace(), LayoutParams.MATCH_PARENT, (int) backHeight);
-        sheet.getBackSpace().setTranslationY(tY);
+    public void setCustomHeight(@Nullable Integer height) {
+        if (height != null && height < -2) height = 0;
+        this.customHeight = height;
+
         requestLayout();
-        invalidate();
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int width = resolveSize(getSheetHeight(), widthMeasureSpec);
-        int height = resolveSize(getSheetHeight(), heightMeasureSpec);
 
-        setMeasuredDimension(width, height);
+        if (getCustomHeight() != null) {
+            int width = resolveSize(getCustomHeight(), widthMeasureSpec);
+            int height = resolveSize(getCustomHeight(), heightMeasureSpec);
+            setMeasuredDimension(width, height);
+        }
+
+        float backHeight = getHeight() * 0.5f;
+        float tY = backHeight * 0.5f;
+        QeViews.setSize(sheet.getBackSpace(), LayoutParams.MATCH_PARENT, (int) backHeight);
+        sheet.getBackSpace().setTranslationY(tY);
     }
 
 }

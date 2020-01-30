@@ -7,8 +7,11 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+
+import com.google.android.material.button.MaterialButton;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
 import com.qegame.qeutil.QeUtil;
+import com.qegame.qeutil.androids.QeAndroid;
 import com.qegame.qeutil.graph.QeColor;
 import com.qegame.qeutil.listening.subscriber.Subscriber;
 
@@ -32,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
                 bottomAppBarQe.snack().show("Complete!");
             }
         });
+
+        bottomAppBarQe.sheet().setHeight((int) QeAndroid.dp(this, 300));
     }
 
     public BottomAppBarQe.Construction.FABCenter getFabCenter() {

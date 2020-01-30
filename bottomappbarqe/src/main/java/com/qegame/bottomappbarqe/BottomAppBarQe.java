@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
@@ -180,7 +179,7 @@ public class BottomAppBarQe extends FrameLayout {
         this.colorAccent = colors[2];
 
         TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.BottomAppBarQe, 0, 0);
-        float sheetHeight = ta.getDimension(R.styleable.BottomAppBarQe_sheetMaxHeight, 0);
+        float sheetHeight = ta.getDimension(R.styleable.BottomAppBarQe_sheetMaxHeight, -777);
         ta.recycle();
 
         this.fab = findViewById(R.id.fab);
@@ -214,7 +213,8 @@ public class BottomAppBarQe extends FrameLayout {
         this.progress = new Progress(this);
         this.snack = new Snack(this);
         this.sheet = new Sheet(this);
-        sheet().getView().setSheetHeight((int) sheetHeight);
+
+        if (sheetHeight != -777) sheet().getView().setCustomHeight((int) sheetHeight);
 
 
         this.images_all_left = new AppCompatImageView[this.icons_all_left.getChildCount()];
@@ -439,15 +439,22 @@ public class BottomAppBarQe extends FrameLayout {
         getFab().setBackgroundTintList(ColorStateList.valueOf(colorFAB));
     }
 
+    private void applyTransY(float h) {
+        if (!sheet().isExpanded()) setTranslationY(h);
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-        if (!sheet().isExpanded()) {
-            float h = sheet().getView().getHeight();
-            float t = h == 0? sheet().getView().getSheetHeight() : h;
-            setTranslationY(t);
-        }
+        QeViews.doOnMeasureView(sheet().getView(), new Do.With<BottomSheetView>() {
+            @Override
+            public void work(BottomSheetView with) {
+                if (!sheet().isExpanded()) {
+                    float h = sheet().getHeight();
+                    setTranslationY(h);
+                }
+            }
+        });
     }
 
     @Override
@@ -520,8 +527,8 @@ public class BottomAppBarQe extends FrameLayout {
             }
         }
 
-        public final void setHeight(int height) {
-            getView().setSheetHeight(height);
+        public final void setHeight(@Nullable Integer height) {
+            getView().setCustomHeight(height);
         }
         public final int getHeight() {
             return getView().getHeight();
