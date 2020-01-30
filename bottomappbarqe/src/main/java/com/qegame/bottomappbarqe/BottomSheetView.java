@@ -1,10 +1,13 @@
 package com.qegame.bottomappbarqe;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -62,8 +65,10 @@ public class BottomSheetView extends FrameLayout {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int width = resolveSize(getSheetHeight(), widthMeasureSpec);
         int height = resolveSize(getSheetHeight(), heightMeasureSpec);
+
         setMeasuredDimension(width, height);
     }
 

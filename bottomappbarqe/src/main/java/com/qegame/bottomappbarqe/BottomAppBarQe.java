@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
@@ -133,6 +134,8 @@ public class BottomAppBarQe extends FrameLayout {
     private FABSettings fabSettings;
     /** Primary цвет темы */
     @ColorInt private int colorPrimary;
+    /** PrimaryDark цвет темы */
+    @ColorInt private int colorPrimaryDark;
     /** Accent цвет темы */
     @ColorInt private int colorAccent;
 
@@ -170,10 +173,11 @@ public class BottomAppBarQe extends FrameLayout {
     private void init(Context context, AttributeSet attrs) {
         inflate(getContext(), R.layout.view_bottom_app_bar_custom,this);
 
-        int[] colors = QeAndroid.getThemeColors(context, QeAndroid.ThemeColor.PRIMARY, QeAndroid.ThemeColor.ACCENT);
+        int[] colors = QeAndroid.getThemeColors(context, QeAndroid.ThemeColor.PRIMARY, QeAndroid.ThemeColor.PRIMART_DARK, QeAndroid.ThemeColor.ACCENT);
 
         this.colorPrimary = colors[0];
-        this.colorAccent = colors[1];
+        this.colorPrimaryDark = colors[1];
+        this.colorAccent = colors[2];
 
         TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.BottomAppBarQe, 0, 0);
         float sheetHeight = ta.getDimension(R.styleable.BottomAppBarQe_sheetMaxHeight, 0);
@@ -229,6 +233,7 @@ public class BottomAppBarQe extends FrameLayout {
         setConstruction(new Construction.FABCenter(FABSettings.EMPTY_SETTINGS, null, null));
 
         setColorPanel(this.colorPanel);
+        this.sheet.setColor(this.colorPrimaryDark);
         refreshFabColor();
 
         setElevation(getResources().getDimension(R.dimen.elevation_bar));
@@ -341,13 +346,18 @@ public class BottomAppBarQe extends FrameLayout {
         this.icons_all_left.setBackgroundColor(color);
         this.icons_left.setBackgroundColor(color);
         this.icons_right.setBackgroundColor(color);
-        this.sheet.setColor(color);
+    }
+    /** Изменить цвет панели */
+    public final void setColorPanel(@ColorInt int color, @ColorInt int sheet) {
+        setColorPanel(color);
+        this.sheet.setColor(sheet);
     }
     /** Изменить цвет FAB */
     public final void setFabColor(@ColorInt int color) {
         this.colorFAB = color;
         refreshFabColor();
     }
+
     /**
      *
      * Программный клик по иконке на панели
