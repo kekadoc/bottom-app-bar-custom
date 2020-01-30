@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        bottomAppBarQe.sheet().setHeight((int) QeAndroid.dp(this, 300));
+        //bottomAppBarQe.sheet().setHeight((int) QeAndroid.dp(this, 300));
     }
 
     public BottomAppBarQe.Construction.FABCenter getFabCenter() {
@@ -103,8 +103,9 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
-                        bottomAppBarQe.snack().show("This is SnackBar!", 100000000);
+                        bottomAppBarQe.sheet().getView().addView(new MaterialButton(MainActivity.this));
+                        Log.e(TAG, "onClick: ADDDEDDD");
+                        //bottomAppBarQe.snack().show("This is SnackBar!", 100000000);
                         /*bottomAppBarQe.snack().make("This is SnackBar!")
                                 .buttonColorBody(Color.RED)
                                 .buttonColorRipple(Color.BLUE)

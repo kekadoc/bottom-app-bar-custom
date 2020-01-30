@@ -42,6 +42,7 @@ import com.qegame.animsimple.anim.MoveRight;
 import com.qegame.animsimple.anim.Scale;
 import com.qegame.animsimple.interpolator.BounceInterpolator;
 import com.qegame.animsimple.path.Alpha;
+import com.qegame.animsimple.path.Path;
 import com.qegame.animsimple.path.ScaleX;
 import com.qegame.animsimple.path.ScaleY;
 import com.qegame.animsimple.path.TranslationY;
@@ -151,6 +152,8 @@ public class BottomAppBarQe extends FrameLayout {
     private Snack snack;
     /** Нижняя панель */
     private Sheet sheet;
+
+    private boolean lockZeroPosition = true;
 
     public BottomAppBarQe(Context context) {
         super(context);
@@ -439,10 +442,6 @@ public class BottomAppBarQe extends FrameLayout {
         getFab().setBackgroundTintList(ColorStateList.valueOf(colorFAB));
     }
 
-    private void applyTransY(float h) {
-        if (!sheet().isExpanded()) setTranslationY(h);
-    }
-
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -459,6 +458,7 @@ public class BottomAppBarQe extends FrameLayout {
 
     @Override
     public void setTranslationY(float translationY) {
+        if (translationY == 0 && lockZeroPosition) return;
         super.setTranslationY(translationY);
         sheet.onSetTranslationY(translationY);
     }
@@ -466,8 +466,16 @@ public class BottomAppBarQe extends FrameLayout {
     /** Управление нижней панелью */
     public static class Sheet implements OnSwipeListener {
 
-        /** Sheet в полной видимости */
-        private boolean expanded;
+        enum Mode {
+            EXPANDED,
+            COLLAPSE,
+            UNCERTAINTY;
+        }
+
+        private Mode activeMode = Mode.COLLAPSE;
+        private Mode previewMove = Mode.COLLAPSE;
+
+        private boolean touched;
 
         private View backSpace;
         private FrameLayout bottomContainer;
@@ -483,11 +491,25 @@ public class BottomAppBarQe extends FrameLayout {
             this.bottomSheetView.setSheet(this);
         }
 
+        public void setActiveMode(Mode activeMode, boolean animate) {
+            this.previewMove = this.activeMode;
+            this.activeMode = activeMode;
+
+            if (isExpanded()) {
+                onExpand();
+                if (animate) animateExpand();
+            }
+            if (isCollapse()) {
+                onCollapse();
+                if (animate) animateCollapse();
+            }
+        }
+
         public void show() {
-            setExpanded(true, true);
+            setPosition(Mode.EXPANDED, true);
         }
         public void hide() {
-            setExpanded(false, true);
+            setPosition(Mode.COLLAPSE, true);
         }
         public void swich() {
             if (isExpanded()) hide();
@@ -495,7 +517,13 @@ public class BottomAppBarQe extends FrameLayout {
         }
 
         public final boolean isExpanded() {
-            return expanded;
+            return activeMode == Mode.EXPANDED;
+        }
+        public final boolean isCollapse() {
+            return activeMode == Mode.COLLAPSE;
+        }
+        public final boolean isUncertainty() {
+            return activeMode == Mode.UNCERTAINTY;
         }
 
         @NonNull
@@ -503,28 +531,34 @@ public class BottomAppBarQe extends FrameLayout {
             return bottomSheetView;
         }
 
-        public final void autoCorrectPosition() {
-            float y = bottomAppBarQe.getTranslationY();
-            if (expanded) {
-                if (y <= getToAutoDown()) animateExpand();
-                else animateCollapse();
-            } else {
-                if (y >= getToAutoUp()) animateCollapse();
-                else animateExpand();
-            }
+        public final void collapse(boolean animate) {
+            if (animate) animateCollapse(); else instantCollapse();
+        }
+        public final void expand(boolean animate) {
+            if (animate) animateExpand(); else instantExpand();
         }
 
-        public final void setExpanded(boolean expanded, boolean animate) {
-            if (expanded == this.expanded) return;
-            this.expanded = expanded;
-            if (expanded) {
-                onExpand();
-                if (animate) animateExpand();
+        public final void autoCorrectPosition(boolean animate) {
+            float y = bottomAppBarQe.getTranslationY();
+            float h = getView().getHeight();
+
+            if (activeMode == Mode.EXPANDED || previewMove == Mode.EXPANDED) {
+                if (y > h * 0.2) collapse(animate);
+                else expand(animate);
             }
-            else {
-                onDeExpand();
-                if (animate) animateCollapse();
+            if (activeMode == Mode.COLLAPSE || previewMove == Mode.COLLAPSE) {
+                if (y < h * 0.9) expand(animate);
+                else collapse(animate);
             }
+
+
+        }
+
+        public final void setPosition(Mode mode, boolean animate) {
+            if (mode == activeMode) return;
+
+            setActiveMode(mode, animate);
+
         }
 
         public final void setHeight(@Nullable Integer height) {
@@ -547,17 +581,23 @@ public class BottomAppBarQe extends FrameLayout {
 
         @CallSuper
         protected void onSetTranslationY(float translationY) {
-            if (translationY <= getMaxUp()) {
-                setExpanded(true, false);
-            } else if (translationY >= getMaxDown()) {
-                setExpanded(false, false);
+            if (translationY > getMaxUp() && translationY < getMaxDown())
+                setPosition(Mode.UNCERTAINTY, false);
+
+            if (translationY <= getMaxUp() && !isCollapse()) {
+                setPosition(Mode.EXPANDED, false);
             }
+            if (translationY >= getMaxDown() && !isExpanded()) {
+                setPosition(Mode.COLLAPSE, false);
+            }
+
+            //correctPosWithMod();
         }
 
         protected void onExpand() {
 
         }
-        protected void onDeExpand() {
+        protected void onCollapse() {
 
         }
 
@@ -567,7 +607,24 @@ public class BottomAppBarQe extends FrameLayout {
                     .interpolator(new BounceInterpolator(1))
                     .from(bottomAppBarQe.getTranslationY())
                     .to(getMaxDown())
+                    .onStart(new Subscriber.Twins<Path<BottomAppBarQe, Float>, Animator>() {
+                        @Override
+                        public void onCall(Path<BottomAppBarQe, Float> first, Animator second) {
+                            bottomAppBarQe.lockZeroPosition = false;
+                        }
+                    })
+                    .onEnd(new Subscriber.Twins<Path<BottomAppBarQe, Float>, Animator>() {
+                        @Override
+                        public void onCall(Path<BottomAppBarQe, Float> first, Animator second) {
+                            bottomAppBarQe.lockZeroPosition = true;
+                        }
+                    })
                     .build().start();
+        }
+        private void instantCollapse() {
+            bottomAppBarQe.lockZeroPosition = false;
+            bottomAppBarQe.setTranslationY(getMaxDown());
+            bottomAppBarQe.lockZeroPosition = true;
         }
         private void animateExpand() {
             TranslationY.builder(bottomAppBarQe)
@@ -575,7 +632,24 @@ public class BottomAppBarQe extends FrameLayout {
                     .interpolator(new OvershootInterpolator())
                     .from(bottomAppBarQe.getTranslationY())
                     .to( - getMaxUp())
+                    .onStart(new Subscriber.Twins<Path<BottomAppBarQe, Float>, Animator>() {
+                        @Override
+                        public void onCall(Path<BottomAppBarQe, Float> first, Animator second) {
+                            bottomAppBarQe.lockZeroPosition = false;
+                        }
+                    })
+                    .onEnd(new Subscriber.Twins<Path<BottomAppBarQe, Float>, Animator>() {
+                        @Override
+                        public void onCall(Path<BottomAppBarQe, Float> first, Animator second) {
+                            bottomAppBarQe.lockZeroPosition = true;
+                        }
+                    })
                     .build().start();
+        }
+        private void instantExpand() {
+            bottomAppBarQe.lockZeroPosition = false;
+            bottomAppBarQe.setTranslationY(getMaxUp());
+            bottomAppBarQe.lockZeroPosition = true;
         }
 
         private float getMaxUp() {
@@ -583,13 +657,6 @@ public class BottomAppBarQe extends FrameLayout {
         }
         private float getMaxDown() {
             return bottomSheetView.getHeight();
-        }
-
-        private float getToAutoDown() {
-            return bottomSheetView.getHeight() * 0.20f;
-        }
-        private float getToAutoUp() {
-            return bottomSheetView.getHeight() * 0.80f;
         }
 
         private void changePosition(float change) {
@@ -608,11 +675,14 @@ public class BottomAppBarQe extends FrameLayout {
 
         @Override
         public void onUp(float x, float y, float dxStart, float dyStart) {
-            autoCorrectPosition();
+            this.touched = false;
+            autoCorrectPosition(true);
+            bottomAppBarQe.lockZeroPosition = true;
         }
         @Override
         public void onDown(float x, float y) {
-
+            this.touched = true;
+            bottomAppBarQe.lockZeroPosition = false;
         }
         @Override
         public void onMove(float dxStart, float dyStart, float dx, float dy) {
