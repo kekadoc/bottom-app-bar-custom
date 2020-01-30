@@ -83,7 +83,7 @@ public class BottomAppBarQe extends FrameLayout {
         };
         
         static void runDefaultAnimation(FloatingActionButton fab) {
-            Scale.animate(fab, new AnimParams.OfFloat<>(0f, 1f, 4000L, new OvershootInterpolator())).start();
+            Scale.animate(fab, new AnimParams.OfFloat<>(0f, 1f, 300L, new OvershootInterpolator())).start();
         }
         
         /** Изображение */

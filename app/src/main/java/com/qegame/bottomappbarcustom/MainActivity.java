@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //bottomAppBarQe.sheet().setHeight((int) QeAndroid.dp(this, 300));
+        //bottomAppBarQe.sheet().setHeight((int) QeAndroid.dp(this, 50));
     }
 
     public BottomAppBarQe.Construction.FABCenter getFabCenter() {

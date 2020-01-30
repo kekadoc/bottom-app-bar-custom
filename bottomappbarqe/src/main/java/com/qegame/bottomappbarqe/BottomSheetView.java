@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.qegame.qeutil.androids.views.QeViews;
+import com.qegame.qeutil.doing.Do;
 
 public class BottomSheetView extends FrameLayout {
     private static final String TAG = "BottomSheetView-TAG";
@@ -63,11 +64,17 @@ public class BottomSheetView extends FrameLayout {
             int height = resolveSize(getCustomHeight(), heightMeasureSpec);
             setMeasuredDimension(width, height);
         }
+        QeViews.doOnMeasureView(this, new Do.With<BottomSheetView>() {
+            @Override
+            public void work(BottomSheetView with) {
+                float backHeight = getHeight() * 0.5f;
+                float tY = backHeight * 0.5f;
 
-        float backHeight = getHeight() * 0.5f;
-        float tY = backHeight * 0.5f;
-        QeViews.setSize(sheet.getBackSpace(), LayoutParams.MATCH_PARENT, (int) backHeight);
-        sheet.getBackSpace().setTranslationY(tY);
+                QeViews.setSize(sheet.getBackSpace(), LayoutParams.MATCH_PARENT, (int) backHeight);
+                sheet.getBackSpace().setTranslationY(tY);
+            }
+        });
+
     }
 
 }
