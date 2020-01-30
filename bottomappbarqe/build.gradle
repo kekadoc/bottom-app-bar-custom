@@ -39,7 +39,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.2.0-alpha04'
 
     implementation 'com.github.qeGame:AnimSimple:0.7.16-alpha.15'
-    implementation 'com.github.qeGame:qeUtilLib:0.5.2-alpha.02'
+    implementation 'com.github.qeGame:qeUtilLib:0.5.2-alpha.03'
     implementation 'com.github.qeGame:QeShaper:0.2.2-alpha.1'
 
 }
