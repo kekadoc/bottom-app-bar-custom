@@ -82,8 +82,9 @@ public class BottomAppBarQe extends FrameLayout {
             }
         };
         
-        static void runDefaultAnimation(FloatingActionButton fab) {
+        static void runDefaultAnimation(FloatingActionButton fab, Drawable image) {
             Scale.animate(fab, new AnimParams.OfFloat<>(0f, 1f, 300L, new OvershootInterpolator())).start();
+            fab.setImageDrawable(image);
         }
         
         /** Изображение */
@@ -91,8 +92,8 @@ public class BottomAppBarQe extends FrameLayout {
         /** Слушатель на нажатие */
         OnClickListener getClickListener();
         /** Анимация появления / изменения */
-        default void createAnimation(FloatingActionButton fab) {
-            runDefaultAnimation(fab);
+        default void createAnimation(FloatingActionButton fab, Drawable image) {
+            runDefaultAnimation(fab, image);
         }
 
     }
@@ -401,10 +402,9 @@ public class BottomAppBarQe extends FrameLayout {
     private void setFabSettings(@NonNull FABSettings fabSettings, boolean animate) {
         this.fabSettings = fabSettings;
 
-        getFab().setImageDrawable(fabSettings.getImage());
+        if (!animate) getFab().setImageDrawable(fabSettings.getImage());
+        else fabSettings.createAnimation(getFab(), fabSettings.getImage());
 
-        if (animate) fabSettings.createAnimation(getFab());
-        
 
         if (fabSettings.getClickListener() == null) {
             getFab().setEnabled(false);

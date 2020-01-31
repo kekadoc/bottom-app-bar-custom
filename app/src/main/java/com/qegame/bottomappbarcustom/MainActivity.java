@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
 import com.qegame.qeutil.QeUtil;
 import com.qegame.qeutil.androids.QeAndroid;
@@ -44,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         BottomAppBarQe.FABSettings fab = new BottomAppBarQe.FABSettings() {
             @Override
             public Drawable getImage() {
-                return getResources().getDrawable(R.drawable.help);
+                return getDrawable(R.drawable.help);
             }
 
             @Override
@@ -52,9 +53,15 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        Log.e(TAG, "onClick: ");
                         bottomAppBarQe.setConstruction(getFabEnd());
                     }
                 };
+            }
+
+            @Override
+            public void createAnimation(FloatingActionButton fab, Drawable image) {
+                Log.e(TAG, "createAnimation: ");
             }
         };
 
@@ -151,9 +158,9 @@ public class MainActivity extends AppCompatActivity {
         BottomAppBarQe.FABSettings fab = new BottomAppBarQe.FABSettings() {
             @Override
             public Drawable getImage() {
-                return null;
+                Log.e(TAG, "getImage: ");
+                return getDrawable(R.drawable.help);
             }
-
             @Override
             public View.OnClickListener getClickListener() {
                 return new View.OnClickListener() {
@@ -163,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 };
             }
+
         };
 
         BottomAppBarQe.IconSettings icon_0 = new BottomAppBarQe.IconSettings() {
