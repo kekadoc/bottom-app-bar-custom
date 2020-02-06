@@ -13,6 +13,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
 import com.qegame.qeutil.QeUtil;
 import com.qegame.qeutil.androids.QeAndroid;
+import com.qegame.qeutil.doing.Do;
 import com.qegame.qeutil.graph.QeColor;
 import com.qegame.qeutil.listening.subscriber.Subscriber;
 
@@ -53,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Log.e(TAG, "onClick: ");
                         bottomAppBarQe.setConstruction(getFabEnd());
                     }
                 };
@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void createAnimation(FloatingActionButton fab, Drawable image) {
-                Log.e(TAG, "createAnimation: ");
+
             }
         };
 
@@ -111,9 +111,8 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         bottomAppBarQe.sheet().getView().addView(new MaterialButton(MainActivity.this));
-                        Log.e(TAG, "onClick: ADDDEDDD");
                         //bottomAppBarQe.snack().show("This is SnackBar!", 100000000);
-                        /*bottomAppBarQe.snack().make("This is SnackBar!")
+                        bottomAppBarQe.snack().make("This is SnackBar!")
                                 .buttonColorBody(Color.RED)
                                 .buttonColorRipple(Color.BLUE)
                                 .buttonText("GG")
@@ -125,9 +124,9 @@ public class MainActivity extends AppCompatActivity {
                                 })
                                 .colorBody(Color.MAGENTA)
                                 .colorText(Color.LTGRAY)
-                                .radius(50)
+                                .radius(10)
                                 .duration(10000)
-                                .show();*/
+                                .show();
                     }
                 };
             }

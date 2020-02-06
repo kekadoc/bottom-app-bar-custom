@@ -8,7 +8,6 @@ import android.content.res.TypedArray;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.Interpolator;
@@ -21,10 +20,12 @@ import android.widget.TextView;
 
 import androidx.annotation.CallSuper;
 import androidx.annotation.ColorInt;
+import androidx.annotation.Dimension;
 import androidx.annotation.FloatRange;
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.Px;
 import androidx.annotation.Size;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
@@ -60,6 +61,8 @@ import com.qegame.qeutil.listening.subscriber.Subscriber;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static androidx.annotation.Dimension.DP;
 
 public class BottomAppBarQe extends FrameLayout {
     private static final String TAG = "BottomAppBarQe-TAG";
@@ -394,7 +397,7 @@ public class BottomAppBarQe extends FrameLayout {
         return DURATION_ICONS;
     }
     /**  */
-    protected int dp(int dp) {
+    protected int dp(@Dimension(unit = DP) int dp) {
         return (int) QeAndroid.dp(getContext(), dp);
     }
 
@@ -1103,11 +1106,11 @@ public class BottomAppBarQe extends FrameLayout {
                 textView.setTextColor(colorText);
 
                 if (this.corners == Corner.CUT) {
-                    view.setBackground(QeShaper.builder().allCorner(new CutCornerTreatment(dp(radius))).color(colorBody).build());
-                    button.setBackground(QeShaper.builder().allCorner(new CutCornerTreatment(dp(radius) * 0.66f)).color(colorButtonBody).rippleColor(colorButtonRipple).build());
+                    view.setBackground(QeShaper.builder().allCorner(new CutCornerTreatment(), dp(radius)).color(colorBody).build());
+                    button.setBackground(QeShaper.builder().allCorner(new CutCornerTreatment(), dp(radius) * 0.66f).color(colorButtonBody).rippleColor(colorButtonRipple).build());
                 } else {
-                    view.setBackground(QeShaper.builder().allCorner(new RoundedCornerTreatment(dp(radius))).color(colorBody).build());
-                    button.setBackground(QeShaper.builder().allCorner(new RoundedCornerTreatment(dp(radius) * 0.66f)).color(colorButtonBody).rippleColor(colorButtonRipple).build());
+                    view.setBackground(QeShaper.builder().allCorner(new RoundedCornerTreatment(), dp(radius)).color(colorBody).build());
+                    button.setBackground(QeShaper.builder().allCorner(new RoundedCornerTreatment(), dp(radius) * 0.66f).color(colorButtonBody).rippleColor(colorButtonRipple).build());
                 }
             } else {
                 button.setText(settings.getButtonText());
@@ -1211,8 +1214,10 @@ public class BottomAppBarQe extends FrameLayout {
 
         public final class Builder {
 
+            @NonNull
             private Corner corners;
-            private int radius;
+
+            @Px private int radius;
             @ColorInt
             private int colorBody;
             @ColorInt
@@ -1316,7 +1321,7 @@ public class BottomAppBarQe extends FrameLayout {
                 this.corners = corners;
                 return this;
             }
-            public Builder radius(int radius) {
+            public Builder radius(@Px int radius) {
                 this.radius = radius;
                 return this;
             }
