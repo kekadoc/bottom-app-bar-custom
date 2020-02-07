@@ -133,7 +133,6 @@ public class BottomAppBarQe extends FrameLayout {
     private LinearLayout icons_right;
     private AppCompatImageView[] images_right;
 
-
     /** Текщие настройки FAB */
     private FABSettings fabSettings;
     /** Primary цвет темы */

@@ -1,6 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#62AAEE</color>
+
+    <!-- Основной цвет приложения -->
+    <color name="colorPrimary">#6200EE</color>
+    <!-- Более светлый чем Primary -->
+    <color name="colorPrimaryLight">#9e47ff</color>
+    <!-- Более темный чем Primary -->
     <color name="colorPrimaryDark">#0400ba</color>
-    <color name="colorAccent">#03DAC6</color>
+    <!-- Альтернативный цвет выбирается Light или Dark -->
+    <color name="colorPrimaryVariant">@color/colorPrimaryLight</color>
+    <!-- Цвет, используемый для элементов, отображаемых поверх ваших основных цветов -->
+    <color name="colorOnPrimary">#FFFFFF</color>
+
+    <!-- Вторичный цвет, используемый в основном как акцент для определенных виджетов -->
+    <color name="colorSecondary">#03DAC6</color>
+    <!-- Более светлый чем Secondary -->
+    <color name="colorSecondaryLight">#66fff9</color>
+    <!-- Более темный чем Secondary -->
+    <color name="colorSecondaryDark">#00a896</color>
+    <!-- Альтернативный цвет выбирается Light или Dark -->
+    <color name="colorSecondaryVariant">@color/colorSecondaryLight</color>
+    <!-- Цвет, используемый для элементов, отображаемых поверх ваших основных цветов -->
+    <color name="colorOnSecondary">#000000</color>
+
+    <!-- Цвет за всем остальным содержимым экрана -->
+    <color name="colorBackground">#FFFFFF</color>
+    <!-- Цвет, используемый для элементов, отображаемых поверх цвета фона -->
+    <color name="colorOnBackground">#000000</color>
+    <!-- Цвет, используемый для поверхностей  -->
+    <color name="colorSurface">#FFFFFF</color>
+    <!-- Цвет, используемый для элементов, отображаемых поверх цвета поверхности -->
+    <color name="colorOnSurface">#000000</color>
+    <!-- Цвет, используемый для ошибок -->
+    <color name="colorError">#B00020</color>
+    <!-- Цвет, используемый для элементов, отображаемых поверх цвета вашей ошибки -->
+    <color name="colorOnError">#FFFFFF</color>
+
+    <color name="colorAccent">@color/colorSecondary</color>
+
 </resources>
