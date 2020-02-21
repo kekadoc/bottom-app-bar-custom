@@ -36,20 +36,17 @@ import com.google.android.material.shape.CutCornerTreatment;
 import com.google.android.material.shape.RoundedCornerTreatment;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.snackbar.SnackbarContentLayout;
-import com.qegame.animsimple.anim.Anim;
-import com.qegame.animsimple.anim.AnimView;
-import com.qegame.animsimple.anim.MoveLeft;
-import com.qegame.animsimple.anim.MoveRight;
-import com.qegame.animsimple.anim.Scale;
-import com.qegame.animsimple.interpolator.BounceInterpolator;
-import com.qegame.animsimple.path.Alpha;
-import com.qegame.animsimple.path.Path;
-import com.qegame.animsimple.path.ScaleX;
-import com.qegame.animsimple.path.ScaleY;
-import com.qegame.animsimple.path.TranslationY;
-import com.qegame.animsimple.path.params.AnimParams;
-import com.qegame.animsimple.path.params.OtherParams;
-import com.qegame.animsimple.viewsanimations.ProgressBarAnimation;
+import com.qegame.qeanim.Params;
+import com.qegame.qeanim.PropertyParams;
+import com.qegame.qeanim.interpolation.BounceInterpolator;
+import com.qegame.qeanim.interpolation.Interpolations;
+import com.qegame.qeanim.simple.SimpleAnim;
+import com.qegame.qeanim.simple.view.MoveLeft;
+import com.qegame.qeanim.simple.view.MoveRight;
+import com.qegame.qeanim.simple.view.ProgressBarAnimation;
+import com.qegame.qeanim.simple.view.Scale;
+import com.qegame.qeanim.simple.view.SimpleAnimView;
+import com.qegame.qeanim.simple.view.TranslationY;
 import com.qegame.qeshaper.QeShaper;
 import com.qegame.qeutil.androids.QeAndroid;
 import com.qegame.qeutil.androids.views.QeViews;
@@ -70,9 +67,11 @@ public class BottomAppBarQe extends FrameLayout {
     /** Скорость анимации смены иконок */
     private static final long DURATION_ICONS = 800L;
 
+    private static SimpleAnimView<FloatingActionButton> defAnimBar;
+
     /** Найстройка FAB */
     public interface FABSettings {
-        
+
         FABSettings EMPTY_SETTINGS = new FABSettings() {
             @Override
             public Drawable getImage() {
@@ -84,9 +83,13 @@ public class BottomAppBarQe extends FrameLayout {
                 return null;
             }
         };
+
         
         static void runDefaultAnimation(FloatingActionButton fab, Drawable image) {
-            Scale.animate(fab, new AnimParams.OfFloat<>(0f, 1f, 300L, new OvershootInterpolator())).start();
+            if (defAnimBar == null) {
+                defAnimBar = Scale.animate(Params.singleOfFloat(fab).from(0f).to(1f).duration(300L).interpolator(Interpolations.OVERSHOOT));
+            }
+            defAnimBar.start();
             fab.setImageDrawable(image);
         }
         
@@ -316,7 +319,7 @@ public class BottomAppBarQe extends FrameLayout {
                 images_all_left[i].setOnClickListener(iconSettings.getClickListener());
             }
 
-            MoveLeft.animate(icons_all_left, new OtherParams.Smart(getDurationIconsShow(), new OvershootInterpolator())).start();
+            MoveLeft.animate(Params.builderOfBase(icons_all_left).duration(getDurationIconsShow()).interpolator(Interpolations.OVERSHOOT)).start();
         }
 
         if (construction instanceof Construction.FABCenter) {
@@ -340,8 +343,9 @@ public class BottomAppBarQe extends FrameLayout {
                 }
             }
 
-            MoveLeft.animate(icons_left, new OtherParams.Smart(getDurationIconsShow(), new OvershootInterpolator())).start();
-            MoveRight.animate(icons_right, new OtherParams.Smart(getDurationIconsShow(), new OvershootInterpolator())).start();
+            MoveLeft.animate(Params.builderOfBase(icons_left).duration(getDurationIconsShow()).interpolator(Interpolations.OVERSHOOT)).start();
+            MoveRight.animate(Params.builderOfBase(icons_right).duration(getDurationIconsShow()).interpolator(Interpolations.OVERSHOOT)).start();
+
         }
     }
 
@@ -513,7 +517,7 @@ public class BottomAppBarQe extends FrameLayout {
         public void hide() {
             setPosition(Mode.COLLAPSE, true);
         }
-        public void swich() {
+        public void switchVisible() {
             if (isExpanded()) hide();
             else show();
         }
@@ -609,15 +613,15 @@ public class BottomAppBarQe extends FrameLayout {
                     .interpolator(new BounceInterpolator(1))
                     .from(bottomAppBarQe.getTranslationY())
                     .to(getMaxDown())
-                    .onStart(new Subscriber.Twins<Path<BottomAppBarQe, Float>, Animator>() {
+                    .doOnStart(new Do.With<Animator>() {
                         @Override
-                        public void onCall(Path<BottomAppBarQe, Float> first, Animator second) {
+                        public void work(Animator with) {
                             bottomAppBarQe.lockZeroPosition = false;
                         }
                     })
-                    .onEnd(new Subscriber.Twins<Path<BottomAppBarQe, Float>, Animator>() {
+                    .doOnEnd(new Do.With<Animator>() {
                         @Override
-                        public void onCall(Path<BottomAppBarQe, Float> first, Animator second) {
+                        public void work(Animator with) {
                             bottomAppBarQe.lockZeroPosition = true;
                         }
                     })
@@ -634,15 +638,15 @@ public class BottomAppBarQe extends FrameLayout {
                     .interpolator(new OvershootInterpolator())
                     .from(bottomAppBarQe.getTranslationY())
                     .to( - getMaxUp())
-                    .onStart(new Subscriber.Twins<Path<BottomAppBarQe, Float>, Animator>() {
+                    .doOnStart(new Do.With<Animator>() {
                         @Override
-                        public void onCall(Path<BottomAppBarQe, Float> first, Animator second) {
+                        public void work(Animator with) {
                             bottomAppBarQe.lockZeroPosition = false;
                         }
                     })
-                    .onEnd(new Subscriber.Twins<Path<BottomAppBarQe, Float>, Animator>() {
+                    .doOnEnd(new Do.With<Animator>() {
                         @Override
-                        public void onCall(Path<BottomAppBarQe, Float> first, Animator second) {
+                        public void work(Animator with) {
                             bottomAppBarQe.lockZeroPosition = true;
                         }
                     })
@@ -850,26 +854,31 @@ public class BottomAppBarQe extends FrameLayout {
 
         @Nullable
         protected void runShowAnimation() {
-            Anim.animate(progressBar)
-                    .play(new Alpha<>(new AnimParams.OfFloat<>(0f, 1f, getDurationProgressShow())))
-                    .with(new ScaleX<>(new AnimParams.OfFloat<>(1.5f, 1f, getDurationProgressShow())))
-                    .with(new ScaleY<>(new AnimParams.OfFloat<>(1.5f, 1f, getDurationProgressShow())))
-                    .build().start();
+            PropertyParams<ProgressBar> params = Params.builderOfProperty(progressBar)
+                    .addPropertyOfFloat("alpha", 0f, 1f)
+                    .addPropertyOfFloat("scaleX", 1.5f, 1f)
+                    .addPropertyOfFloat("scaleY", 1.5f, 1f)
+                    .duration(getDurationProgressShow())
+                    .build();
+            new SimpleAnim<>(params).start();
+
         }
         @Nullable
         protected void runLeaveAnimation() {
-            Anim.animate(progressBar)
-                    .play(new Alpha<>(new AnimParams.OfFloat<>(1f, 0f, getDurationProgressLeave())))
-                    .with(new ScaleX<>(new AnimParams.OfFloat<>(1f, 1.5f, getDurationProgressLeave())))
-                    .with(new ScaleY<>(new AnimParams.OfFloat<>(1f, 1.5f, getDurationProgressLeave())))
-                    .build()
-                    .addEndSub(new Subscriber.Twins<Anim<ProgressBar>, Animator>() {
+
+            PropertyParams<ProgressBar> params = Params.builderOfProperty(progressBar)
+                    .addPropertyOfFloat("alpha", 1f, 0f)
+                    .addPropertyOfFloat("scaleX", 1.0f, 1.5f)
+                    .addPropertyOfFloat("scaleY", 1.0f, 1.5f)
+                    .duration(getDurationProgressShow())
+                    .doOnEnd(new Do.With<Animator>() {
                         @Override
-                        public void onCall(Anim<ProgressBar> first, Animator second) {
+                        public void work(Animator with) {
                             finallyRemoveProgressBar();
                         }
                     })
-                    .start();
+                    .build();
+            new SimpleAnim<>(params).start();
         }
 
         /** Длительность анимации прогресса */
@@ -888,13 +897,18 @@ public class BottomAppBarQe extends FrameLayout {
         /** Изменить уровень прогресса */
         private void set(@IntRange(from = 0, to = MAX_PB) int value) {
             if (progressBar != null) {
-                ProgressBarAnimation anim = ProgressBarAnimation.animateProgress(progressBar, progressBar.getProgress(), value, getDurationProgressAnimation());
-                anim.start();
+                SimpleAnimView<ProgressBar> animView = new ProgressBarAnimation(
+                        Params.singleOfInt(progressBar)
+                                .from(progressBar.getProgress())
+                                .to(value)
+                                .duration(getDurationProgressAnimation())
+                                .build());
+                animView.start();
 
                 if (value >= getProgressMaxValue())
-                    anim.getOnEnd().subscribe(new Subscriber.Twins<Anim<ProgressBar>, Animator>() {
+                    animView.addOnEndListener(new Subscriber.Single<Animator>() {
                         @Override
-                        public void onCall(Anim<ProgressBar> first, Animator second) {
+                        public void onCall(Animator param) {
                             onProgressCompletely.call();
                         }
                     });
@@ -975,6 +989,8 @@ public class BottomAppBarQe extends FrameLayout {
         private static final long DURATION_SNACK_LEAVE = 600L;
         /** Продолжительность видимости */
         private static final long DURATION_SNACK_DEFAULT = 2500L;
+        /** Продолжительность видимости */
+        private static final long DURATION_MAX = Long.MAX_VALUE;
 
         @NonNull
         private BottomAppBarQe bottomAppBarQe;
@@ -995,6 +1011,10 @@ public class BottomAppBarQe extends FrameLayout {
         private int colorButtonRipple;
 
         private String buttonText;
+
+        /** Активный снэк */
+        @Nullable
+        private Snackbar activeSnack;
 
         public Snack(@NonNull BottomAppBarQe bottomAppBarQe) {
             this.bottomAppBarQe = bottomAppBarQe;
@@ -1029,7 +1049,16 @@ public class BottomAppBarQe extends FrameLayout {
             this.buttonText = buttonText;
         }
 
+        @Nullable
+        public Snackbar getShownSnackbar() {
+            return activeSnack;
+        }
+
         //endregion
+
+        public final boolean isSnackShown() {
+            return activeSnack != null;
+        }
 
         @NonNull
         public final Builder make(String text) {
@@ -1131,7 +1160,7 @@ public class BottomAppBarQe extends FrameLayout {
         @NonNull
         private Snackbar show(String text, long duration, @Nullable Settings settings) {
 
-            final Snackbar snackbar = Snackbar.make(bottomAppBarQe, settings != null ? settings.getText() : text, Snackbar.LENGTH_INDEFINITE);
+            this.activeSnack = Snackbar.make(bottomAppBarQe, settings != null ? settings.getText() : text, Snackbar.LENGTH_INDEFINITE);
             Timer timer = new Timer();
             TimerTask timerTask = new TimerTask() {
                 @Override
@@ -1139,71 +1168,63 @@ public class BottomAppBarQe extends FrameLayout {
                     ((Activity) bottomAppBarQe.getContext()).runOnUiThread(new TimerTask() {
                         @Override
                         public void run() {
-                            animateSnackBarLeave(snackbar);
+                            animateSnackBarLeave(activeSnack);
 
                         }
                     });
                 }
             };
             timer.schedule(timerTask, settings == null ? duration : settings.getDuration());
-            snackBarViewBuilder(snackbar, snackbar.getView(), settings);
-            snackbar.show();
-            QeViews.doOnMeasureView(snackbar.getView(), new Do.With<View>() {
+            snackBarViewBuilder(activeSnack, activeSnack.getView(), settings);
+            activeSnack.show();
+            QeViews.doOnMeasureView(activeSnack.getView(), new Do.With<View>() {
                 @Override
                 public void work(View with) {
-                    animateSnackBarShow(snackbar);
+                    animateSnackBarShow(activeSnack);
                 }
             });
 
-            return snackbar;
+            return activeSnack;
         }
 
         /** Вызов анимации ухода */
         private void animateSnackBarLeave(final Snackbar snackbar) {
             if (snackbar.isShown()) {
-                AnimView<View> anim = AnimView.animate(snackbar.getView());
-                anim.playTogether(
-                        TranslationY.animate(new AnimParams.OfFloat<>(0f, snackbar.getView().getHeight() * 3f, new OtherParams() {
+                View view = snackbar.getView();
+                PropertyParams<View> params = Params.builderOfProperty(view)
+                        .addPropertyOfFloat("translationY", 0f, view.getHeight() * 3f)
+                        .addPropertyOfFloat("alpha", 1.0f, 0f)
+                        .duration(getDurationSnackLeave())
+                        .doOnEnd(new Do.With<Animator>() {
                             @Override
-                            public long getDuration() {
-                                return getDurationSnackLeave();
+                            public void work(Animator with) {
+                                snackbar.dismiss();
+                                view.setVisibility(GONE);
                             }
+                        })
+                        .build();
+                new SimpleAnim<>(params).start();
 
-                            @Override
-                            public Interpolator getInterpolator() {
-                                return new OvershootInterpolator(0.8f);
-                            }
-                        })),
-                        Alpha.animate(new AnimParams.OfFloat<>(1f, 0f, getDurationSnackLeave()))
-                );
-                anim.addEndSub(new Subscriber.Twins<Anim<View>, Animator>() {
-                    @Override
-                    public void onCall(Anim<View> first, Animator second) {
-                        snackbar.dismiss();
-                        snackbar.getView().setVisibility(GONE);
-                    }
-                });
-                anim.start();
             }
         }
         /** Вызов анимации появления */
         private void animateSnackBarShow(final Snackbar snackbar) {
-            AnimView<View> animDefault = AnimView.animate(snackbar.getView());
-            animDefault.playTogether(
-                    TranslationY.animate(new AnimParams.OfFloat<>(snackbar.getView().getHeight() * 3f, 0f, new OtherParams() {
+            View view = snackbar.getView();
+            PropertyParams<View> params = Params.builderOfProperty(view)
+                    .addPropertyOfFloat("translationY", view.getHeight() * 3f, 0f)
+                    .addPropertyOfFloat("alpha", 0.0f, 1f)
+                    .duration(getDurationSnackShow())
+                    .interpolator(new OvershootInterpolator(1f))
+                    .doOnEnd(new Do.With<Animator>() {
                         @Override
-                        public long getDuration() {
-                            return getDurationSnackShow();
+                        public void work(Animator with) {
+                            snackbar.dismiss();
+                            view.setVisibility(GONE);
                         }
+                    })
+                    .build();
+            new SimpleAnim<>(params).start();
 
-                        @Override
-                        public Interpolator getInterpolator() {
-                            return new OvershootInterpolator(1f);
-                        }
-                    })),
-                    Alpha.animate(new AnimParams.OfFloat<>(0f, 1f, getDurationSnackShow() / 2))
-            );
-            animDefault.start();
         }
         /**  */
         private int dp(int val) {

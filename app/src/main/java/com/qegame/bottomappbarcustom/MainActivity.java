@@ -11,8 +11,6 @@ import android.view.View;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.qegame.bottomappbarqe.BottomAppBarQe;
-import com.qegame.qeutil.QeUtil;
-import com.qegame.qeutil.androids.QeAndroid;
 import com.qegame.qeutil.doing.Do;
 import com.qegame.qeutil.graph.QeColor;
 import com.qegame.qeutil.listening.subscriber.Subscriber;
@@ -183,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        bottomAppBarQe.sheet().swich();
+                        bottomAppBarQe.sheet().switchVisible();
                     }
                 };
             }
