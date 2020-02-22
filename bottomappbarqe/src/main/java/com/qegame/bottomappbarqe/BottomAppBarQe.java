@@ -8,6 +8,7 @@ import android.content.res.TypedArray;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.Interpolator;
@@ -36,6 +37,7 @@ import com.google.android.material.shape.CutCornerTreatment;
 import com.google.android.material.shape.RoundedCornerTreatment;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.snackbar.SnackbarContentLayout;
+import com.qegame.qeanim.Anim;
 import com.qegame.qeanim.Params;
 import com.qegame.qeanim.PropertyParams;
 import com.qegame.qeanim.interpolation.BounceInterpolator;
@@ -736,9 +738,8 @@ public class BottomAppBarQe extends FrameLayout {
         /** Экземпляр View */
         @Nullable
         private ProgressBar progressBar;
-
         @NonNull
-        BottomAppBarQe bottomAppBarQe;
+        private BottomAppBarQe bottomAppBarQe;
 
         public Progress(@NonNull BottomAppBarQe bottomAppBarQe) {
             this.bottomAppBarQe = bottomAppBarQe;
@@ -772,6 +773,7 @@ public class BottomAppBarQe extends FrameLayout {
             if (this.progressBar != null) {
                 refresh(this.progressBar.getProgress());
             } else {
+                // TODO: 22.02.2020 Незачем каждый раз строить прогресс
                 //Если ещё не отрисован
                 if (bottomAppBarQe.fab.getWidth() == 0) {
                     QeViews.doOnMeasureView(bottomAppBarQe.fab, new Do.With<FloatingActionButton>() {
@@ -860,12 +862,10 @@ public class BottomAppBarQe extends FrameLayout {
                     .addPropertyOfFloat("scaleY", 1.5f, 1f)
                     .duration(getDurationProgressShow())
                     .build();
-            new SimpleAnim<>(params).start();
-
+            Anim.simpleAnim(params).start();
         }
         @Nullable
         protected void runLeaveAnimation() {
-
             PropertyParams<ProgressBar> params = Params.builderOfProperty(progressBar)
                     .addPropertyOfFloat("alpha", 1f, 0f)
                     .addPropertyOfFloat("scaleX", 1.0f, 1.5f)
@@ -878,7 +878,7 @@ public class BottomAppBarQe extends FrameLayout {
                         }
                     })
                     .build();
-            new SimpleAnim<>(params).start();
+            Anim.simpleAnim(params).start();
         }
 
         /** Длительность анимации прогресса */
@@ -1160,7 +1160,9 @@ public class BottomAppBarQe extends FrameLayout {
         @NonNull
         private Snackbar show(String text, long duration, @Nullable Settings settings) {
 
-            this.activeSnack = Snackbar.make(bottomAppBarQe, settings != null ? settings.getText() : text, Snackbar.LENGTH_INDEFINITE);
+            Snackbar snackbar = Snackbar.make(bottomAppBarQe, settings != null ? settings.getText() : text, Snackbar.LENGTH_INDEFINITE);
+            this.activeSnack = snackbar;
+            // TODO: 22.02.2020 Один таймер на все
             Timer timer = new Timer();
             TimerTask timerTask = new TimerTask() {
                 @Override
@@ -1168,23 +1170,22 @@ public class BottomAppBarQe extends FrameLayout {
                     ((Activity) bottomAppBarQe.getContext()).runOnUiThread(new TimerTask() {
                         @Override
                         public void run() {
-                            animateSnackBarLeave(activeSnack);
-
+                            animateSnackBarLeave(snackbar);
                         }
                     });
                 }
             };
             timer.schedule(timerTask, settings == null ? duration : settings.getDuration());
-            snackBarViewBuilder(activeSnack, activeSnack.getView(), settings);
-            activeSnack.show();
-            QeViews.doOnMeasureView(activeSnack.getView(), new Do.With<View>() {
+            snackBarViewBuilder(snackbar, snackbar.getView(), settings);
+            snackbar.show();
+            QeViews.doOnMeasureView(snackbar.getView(), new Do.With<View>() {
                 @Override
                 public void work(View with) {
-                    animateSnackBarShow(activeSnack);
+                    animateSnackBarShow(snackbar);
                 }
             });
 
-            return activeSnack;
+            return snackbar;
         }
 
         /** Вызов анимации ухода */
@@ -1203,8 +1204,7 @@ public class BottomAppBarQe extends FrameLayout {
                             }
                         })
                         .build();
-                new SimpleAnim<>(params).start();
-
+                Anim.simpleAnim(params).start();
             }
         }
         /** Вызов анимации появления */
@@ -1215,15 +1215,8 @@ public class BottomAppBarQe extends FrameLayout {
                     .addPropertyOfFloat("alpha", 0.0f, 1f)
                     .duration(getDurationSnackShow())
                     .interpolator(new OvershootInterpolator(1f))
-                    .doOnEnd(new Do.With<Animator>() {
-                        @Override
-                        public void work(Animator with) {
-                            snackbar.dismiss();
-                            view.setVisibility(GONE);
-                        }
-                    })
                     .build();
-            new SimpleAnim<>(params).start();
+            Anim.simpleAnim(params).start();
 
         }
         /**  */
@@ -1231,7 +1224,7 @@ public class BottomAppBarQe extends FrameLayout {
             return bottomAppBarQe.dp(val);
         }
 
-
+        /** Строитель SnackBar */
         public final class Builder {
 
             @NonNull
@@ -1381,12 +1374,14 @@ public class BottomAppBarQe extends FrameLayout {
                 return this;
             }
 
+            /** Время существования */
             public Builder duration(long duration) {
                 this.duration = duration;
                 return this;
             }
 
         }
+
     }
     /** Конструкция */
     public static abstract class Construction {
