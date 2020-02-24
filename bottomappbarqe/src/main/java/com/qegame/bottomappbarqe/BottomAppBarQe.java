@@ -1,6 +1,7 @@
 package com.qegame.bottomappbarqe;
 
 import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
@@ -11,6 +12,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.animation.AnticipateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
@@ -37,18 +39,17 @@ import com.google.android.material.shape.CutCornerTreatment;
 import com.google.android.material.shape.RoundedCornerTreatment;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.snackbar.SnackbarContentLayout;
-import com.qegame.qeanim.Anim;
-import com.qegame.qeanim.Params;
-import com.qegame.qeanim.PropertyParams;
+import com.qegame.qeanim.AbsQeAnim;
+import com.qegame.qeanim.QeAnimation;
 import com.qegame.qeanim.interpolation.BounceInterpolator;
 import com.qegame.qeanim.interpolation.Interpolations;
-import com.qegame.qeanim.simple.SimpleAnim;
-import com.qegame.qeanim.simple.view.MoveLeft;
-import com.qegame.qeanim.simple.view.MoveRight;
-import com.qegame.qeanim.simple.view.ProgressBarAnimation;
-import com.qegame.qeanim.simple.view.Scale;
-import com.qegame.qeanim.simple.view.SimpleAnimView;
-import com.qegame.qeanim.simple.view.TranslationY;
+import com.qegame.qeanim.view.Move;
+import com.qegame.qeanim.view.MoveLeft;
+import com.qegame.qeanim.view.MoveRight;
+import com.qegame.qeanim.view.ProgressBarAnimation;
+import com.qegame.qeanim.view.QeAnimView;
+import com.qegame.qeanim.view.Scale;
+import com.qegame.qeanim.view.TranslationY;
 import com.qegame.qeshaper.QeShaper;
 import com.qegame.qeutil.androids.QeAndroid;
 import com.qegame.qeutil.androids.views.QeViews;
@@ -69,7 +70,7 @@ public class BottomAppBarQe extends FrameLayout {
     /** Скорость анимации смены иконок */
     private static final long DURATION_ICONS = 800L;
 
-    private static SimpleAnimView<FloatingActionButton> defAnimBar;
+    private static Animator defAnimBar;
 
     /** Найстройка FAB */
     public interface FABSettings {
@@ -89,7 +90,7 @@ public class BottomAppBarQe extends FrameLayout {
         
         static void runDefaultAnimation(FloatingActionButton fab, Drawable image) {
             if (defAnimBar == null) {
-                defAnimBar = Scale.animate(Params.singleOfFloat(fab).from(0f).to(1f).duration(300L).interpolator(Interpolations.OVERSHOOT));
+                defAnimBar = Scale.builder(fab).from(0f).to(1f).duration(300L).interpolator(Interpolations.OVERSHOOT).build();
             }
             defAnimBar.start();
             fab.setImageDrawable(image);
@@ -321,7 +322,7 @@ public class BottomAppBarQe extends FrameLayout {
                 images_all_left[i].setOnClickListener(iconSettings.getClickListener());
             }
 
-            MoveLeft.animate(Params.builderOfBase(icons_all_left).duration(getDurationIconsShow()).interpolator(Interpolations.OVERSHOOT)).start();
+            MoveLeft.builder(icons_all_left).duration(getDurationIconsShow()).interpolator(Interpolations.OVERSHOOT).start();
         }
 
         if (construction instanceof Construction.FABCenter) {
@@ -345,8 +346,8 @@ public class BottomAppBarQe extends FrameLayout {
                 }
             }
 
-            MoveLeft.animate(Params.builderOfBase(icons_left).duration(getDurationIconsShow()).interpolator(Interpolations.OVERSHOOT)).start();
-            MoveRight.animate(Params.builderOfBase(icons_right).duration(getDurationIconsShow()).interpolator(Interpolations.OVERSHOOT)).start();
+            MoveLeft.builder(icons_left).duration(getDurationIconsShow()).interpolator(Interpolations.OVERSHOOT).start();
+            MoveRight.builder(icons_right).duration(getDurationIconsShow()).interpolator(Interpolations.OVERSHOOT).start();
 
         }
     }
@@ -615,15 +616,15 @@ public class BottomAppBarQe extends FrameLayout {
                     .interpolator(new BounceInterpolator(1))
                     .from(bottomAppBarQe.getTranslationY())
                     .to(getMaxDown())
-                    .doOnStart(new Do.With<Animator>() {
+                    .onStart(new Subscriber.Single<ObjectAnimator>() {
                         @Override
-                        public void work(Animator with) {
+                        public void onCall(ObjectAnimator param) {
                             bottomAppBarQe.lockZeroPosition = false;
                         }
                     })
-                    .doOnEnd(new Do.With<Animator>() {
+                    .onEnd(new Subscriber.Single<ObjectAnimator>() {
                         @Override
-                        public void work(Animator with) {
+                        public void onCall(ObjectAnimator param) {
                             bottomAppBarQe.lockZeroPosition = true;
                         }
                     })
@@ -640,15 +641,15 @@ public class BottomAppBarQe extends FrameLayout {
                     .interpolator(new OvershootInterpolator())
                     .from(bottomAppBarQe.getTranslationY())
                     .to( - getMaxUp())
-                    .doOnStart(new Do.With<Animator>() {
+                    .onStart(new Subscriber.Single<ObjectAnimator>() {
                         @Override
-                        public void work(Animator with) {
+                        public void onCall(ObjectAnimator param) {
                             bottomAppBarQe.lockZeroPosition = false;
                         }
                     })
-                    .doOnEnd(new Do.With<Animator>() {
+                    .onEnd(new Subscriber.Single<ObjectAnimator>() {
                         @Override
-                        public void work(Animator with) {
+                        public void onCall(ObjectAnimator param) {
                             bottomAppBarQe.lockZeroPosition = true;
                         }
                     })
@@ -856,29 +857,28 @@ public class BottomAppBarQe extends FrameLayout {
 
         @Nullable
         protected void runShowAnimation() {
-            PropertyParams<ProgressBar> params = Params.builderOfProperty(progressBar)
-                    .addPropertyOfFloat("alpha", 0f, 1f)
-                    .addPropertyOfFloat("scaleX", 1.5f, 1f)
-                    .addPropertyOfFloat("scaleY", 1.5f, 1f)
+            QeAnimView.builder(progressBar)
+                    .alpha(0f, 1f)
+                    .scaleX(1.5f, 1f) //// TODO: 24.02.2020 Обновить QeAnim и исп просто scale
+                    .scaleY(1.5f, 1f)
                     .duration(getDurationProgressShow())
-                    .build();
-            Anim.simpleAnim(params).start();
+                    .start();
+
         }
         @Nullable
         protected void runLeaveAnimation() {
-            PropertyParams<ProgressBar> params = Params.builderOfProperty(progressBar)
-                    .addPropertyOfFloat("alpha", 1f, 0f)
-                    .addPropertyOfFloat("scaleX", 1.0f, 1.5f)
-                    .addPropertyOfFloat("scaleY", 1.0f, 1.5f)
-                    .duration(getDurationProgressShow())
-                    .doOnEnd(new Do.With<Animator>() {
+            QeAnimView.builder(progressBar)
+                    .alpha(1f, 0f)
+                    .scaleX(1.0f, 1.5f) //// TODO: 24.02.2020 Обновить QeAnim и исп просто scale
+                    .scaleY(1.0f, 1.5f)
+                    .duration(getDurationProgressLeave())
+                    .onEnd(new Subscriber.Single<ObjectAnimator>() {
                         @Override
-                        public void work(Animator with) {
+                        public void onCall(ObjectAnimator param) {
                             finallyRemoveProgressBar();
                         }
                     })
-                    .build();
-            Anim.simpleAnim(params).start();
+                    .start();
         }
 
         /** Длительность анимации прогресса */
@@ -897,18 +897,16 @@ public class BottomAppBarQe extends FrameLayout {
         /** Изменить уровень прогресса */
         private void set(@IntRange(from = 0, to = MAX_PB) int value) {
             if (progressBar != null) {
-                SimpleAnimView<ProgressBar> animView = new ProgressBarAnimation(
-                        Params.singleOfInt(progressBar)
-                                .from(progressBar.getProgress())
-                                .to(value)
-                                .duration(getDurationProgressAnimation())
-                                .build());
-                animView.start();
+                // TODO: 24.02.2020 Обновить QeAnim и исп статичный вызов билдера
+                AbsQeAnim<ProgressBar> animation = new ProgressBarAnimation(progressBar).builder()
+                        .from(progressBar.getProgress())
+                        .to(value)
+                        .duration(getDurationProgressAnimation()).build();
 
                 if (value >= getProgressMaxValue())
-                    animView.addOnEndListener(new Subscriber.Single<Animator>() {
+                    animation.addOnEndListener(new Subscriber.Single<ObjectAnimator>() {
                         @Override
-                        public void onCall(Animator param) {
+                        public void onCall(ObjectAnimator param) {
                             onProgressCompletely.call();
                         }
                     });
@@ -1192,31 +1190,26 @@ public class BottomAppBarQe extends FrameLayout {
         private void animateSnackBarLeave(final Snackbar snackbar) {
             if (snackbar.isShown()) {
                 View view = snackbar.getView();
-                PropertyParams<View> params = Params.builderOfProperty(view)
-                        .addPropertyOfFloat("translationY", 0f, view.getHeight() * 3f)
-                        .addPropertyOfFloat("alpha", 1.0f, 0f)
+                QeAnimView.builder(view)
+                        .translationY(0f, view.getHeight() * 3f)
+                        .alpha(1.0f, 0f)
                         .duration(getDurationSnackLeave())
-                        .doOnEnd(new Do.With<Animator>() {
-                            @Override
-                            public void work(Animator with) {
-                                snackbar.dismiss();
-                                view.setVisibility(GONE);
-                            }
-                        })
-                        .build();
-                Anim.simpleAnim(params).start();
+                        .interpolator(new AnticipateInterpolator(1f))
+                        .onEnd(param -> {
+                            snackbar.dismiss();
+                            view.setVisibility(GONE);
+                        }).start();
             }
         }
         /** Вызов анимации появления */
         private void animateSnackBarShow(final Snackbar snackbar) {
             View view = snackbar.getView();
-            PropertyParams<View> params = Params.builderOfProperty(view)
-                    .addPropertyOfFloat("translationY", view.getHeight() * 3f, 0f)
-                    .addPropertyOfFloat("alpha", 0.0f, 1f)
+            QeAnimView.builder(view)
+                    .translationY(view.getHeight() * 3f, 0f)
+                    .alpha(0.0f, 1f)
                     .duration(getDurationSnackShow())
                     .interpolator(new OvershootInterpolator(1f))
-                    .build();
-            Anim.simpleAnim(params).start();
+                    .start();
 
         }
         /**  */

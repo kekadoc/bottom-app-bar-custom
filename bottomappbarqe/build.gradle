@@ -38,8 +38,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'com.google.android.material:material:1.2.0-alpha04'
 
-    implementation 'com.github.qeGame:AnimSimple:0.8.0-alpha.7'
-    implementation 'com.github.qeGame:qeUtilLib:0.5.2-alpha.11'
+    implementation 'com.github.qeGame:AnimSimple:0.8.1-alpha.3'
+    implementation 'com.github.qeGame:qeUtilLib:0.5.2-alpha.12'
     implementation 'com.github.qeGame:QeShaper:0.3.0-alpha.3'
 
 }
