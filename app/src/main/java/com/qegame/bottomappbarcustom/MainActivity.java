@@ -74,7 +74,8 @@ public class MainActivity extends AppCompatActivity {
                 return new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (bottomAppBarQe.progress().isShown()) bottomAppBarQe.progress().remove(true);
+                        if (bottomAppBarQe.progress().isShown())
+                            bottomAppBarQe.progress().remove(true);
                         else bottomAppBarQe.progress().show();
                     }
                 };

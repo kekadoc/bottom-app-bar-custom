@@ -910,6 +910,7 @@ public class BottomAppBarQe extends FrameLayout {
                             onProgressCompletely.call();
                         }
                     });
+                animation.start();
             }
         }
         /** Построение ProgressBar */
@@ -927,8 +928,6 @@ public class BottomAppBarQe extends FrameLayout {
             refreshColor();
             
             if (animation) runShowAnimation();
-
-
         }
         /**  */
         private void finallyRemoveProgressBar() {
