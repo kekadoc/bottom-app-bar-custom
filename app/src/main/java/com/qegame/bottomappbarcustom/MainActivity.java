@@ -1,5 +1,6 @@
 package com.qegame.bottomappbarcustom;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.Color;
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void createAnimation(FloatingActionButton fab, Drawable image) {
+            public void createAnimation(@NonNull FloatingActionButton fab, Drawable image) {
 
             }
         };

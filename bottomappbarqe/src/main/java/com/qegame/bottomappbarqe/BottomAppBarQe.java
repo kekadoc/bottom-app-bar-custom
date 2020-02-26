@@ -9,11 +9,9 @@ import android.content.res.TypedArray;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AnticipateInterpolator;
-import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -40,6 +38,7 @@ import com.google.android.material.shape.RoundedCornerTreatment;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.snackbar.SnackbarContentLayout;
 import com.qegame.qeanim.AbsQeAnim;
+import com.qegame.qeanim.AnimHolder;
 import com.qegame.qeanim.QeAnimation;
 import com.qegame.qeanim.interpolation.BounceInterpolator;
 import com.qegame.qeanim.interpolation.Interpolations;
@@ -88,7 +87,7 @@ public class BottomAppBarQe extends FrameLayout {
         };
 
         
-        static void runDefaultAnimation(FloatingActionButton fab, Drawable image) {
+        static void runDefaultAnimation(@NonNull FloatingActionButton fab, @Nullable Drawable image) {
             if (defAnimBar == null) {
                 defAnimBar = Scale.builder(fab).from(0f).to(1f).duration(300L).interpolator(Interpolations.OVERSHOOT).build();
             }
@@ -100,8 +99,10 @@ public class BottomAppBarQe extends FrameLayout {
         Drawable getImage();
         /** Слушатель на нажатие */
         OnClickListener getClickListener();
-        /** Анимация появления / изменения */
-        default void createAnimation(FloatingActionButton fab, Drawable image) {
+        /** Анимация появления / изменения.
+         * @param fab FAB
+         * @param image Картинка Fab, которую нужно установить. */
+        default void createAnimation(@NonNull FloatingActionButton fab, @Nullable Drawable image) {
             runDefaultAnimation(fab, image);
         }
 
@@ -163,6 +164,10 @@ public class BottomAppBarQe extends FrameLayout {
     private Sheet sheet;
 
     private boolean lockZeroPosition = true;
+
+    private AnimHolder<MoveLeft<LinearLayout>, LinearLayout> animShowAllBottomIcons;
+    private AnimHolder<MoveLeft<LinearLayout>, LinearLayout> animShowLeftBottomIcons;
+    private AnimHolder<MoveRight<LinearLayout>, LinearLayout> animShowRightBottomIcons;
 
     public BottomAppBarQe(Context context) {
         super(context);
@@ -323,9 +328,11 @@ public class BottomAppBarQe extends FrameLayout {
             }
 
             MoveLeft.builder(icons_all_left).duration(getDurationIconsShow()).interpolator(Interpolations.OVERSHOOT).start();
+
         }
 
         if (construction instanceof Construction.FABCenter) {
+
             Construction.FABCenter construct = (Construction.FABCenter) construction;
             construct(construct.fabSettings, BottomAppBar.FAB_ALIGNMENT_MODE_CENTER);
 
@@ -414,7 +421,6 @@ public class BottomAppBarQe extends FrameLayout {
         if (!animate) getFab().setImageDrawable(fabSettings.getImage());
         else fabSettings.createAnimation(getFab(), fabSettings.getImage());
 
-
         if (fabSettings.getClickListener() == null) {
             getFab().setEnabled(false);
             getFab().setClickable(false);
@@ -424,6 +430,7 @@ public class BottomAppBarQe extends FrameLayout {
         }
 
         this.progress.remove();
+
     }
     /**  */
     private void construct(final FABSettings fabSettings, int fabAlignment) {
@@ -946,7 +953,7 @@ public class BottomAppBarQe extends FrameLayout {
     }
     /**  */
     public static class Snack {
-
+        // TODO: 24.02.2020 Убирать снэк свайпом влево-вправо 
         /** Типы углов */
         public enum Corner {
             /** Обрезанные */
@@ -1322,10 +1329,13 @@ public class BottomAppBarQe extends FrameLayout {
                 });
             }
 
+            // TODO: 24.02.2020 Создать в QeShaper Enum Corenr и исп везде 
             public Builder corners(@NonNull Corner corners) {
                 this.corners = corners;
                 return this;
             }
+
+            // TODO: 24.02.2020 Прописать ограничения 
             public Builder radius(@Px int radius) {
                 this.radius = radius;
                 return this;
